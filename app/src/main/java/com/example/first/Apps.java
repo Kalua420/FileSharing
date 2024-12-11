@@ -40,7 +40,7 @@ public class Apps extends Fragment {
     private ArrayList<AppModel> getAllApps() {
         ArrayList<AppModel> appModels = new ArrayList<>();
         PackageManager pm = requireContext().getPackageManager();
-        ArrayList<ApplicationInfo> packages = (ArrayList<ApplicationInfo>) pm.getInstalledApplications(PackageManager.GET_META_DATA);
+        ArrayList<ApplicationInfo> packages = (ArrayList<ApplicationInfo>) pm.getInstalledApplications(PackageManager.MATCH_UNINSTALLED_PACKAGES);
         for (ApplicationInfo packageInfo : packages) {
             Drawable icon = pm.getApplicationIcon(packageInfo);
             String appName = pm.getApplicationLabel(packageInfo).toString();

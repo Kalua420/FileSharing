@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".Connect">
+    <com.google.android.material.appbar.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <androidx.appcompat.widget.Toolbar
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/toolbar">
+
+        </androidx.appcompat.widget.Toolbar>
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center">
+        <LinearLayout android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:layout_marginEnd="45dp"
+            android:id="@+id/send"
+            android:orientation="vertical"
+            tools:ignore="UseCompoundDrawables">
+            <ImageView  android:layout_width="100dp"
+                android:src="@drawable/baseline_send_24"
+                android:layout_height="100dp"
+                tools:ignore="ContentDescription" />
+            <TextView android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:contentDescription="@string/todo"
+                android:textSize="25sp"
+                android:textAllCaps="true"
+                android:text="@string/send"
+                android:textStyle="bold"
+                android:fontFamily="serif"/>
+        </LinearLayout>
+        <LinearLayout android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:id="@+id/recv"
+            android:orientation="vertical"
+            tools:ignore="UseCompoundDrawables">
+
+            <ImageView
+                android:layout_width="100dp"
+                android:layout_height="100dp"
+                android:src="@drawable/baseline_get_app_24"
+                tools:ignore="ContentDescription,ImageContrastCheck" />
+            <TextView android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="25sp"
+                android:textAllCaps="true"
+                android:text="@string/receive"
+                android:textStyle="bold"
+                android:fontFamily="serif"/>
+        </LinearLayout>
+    </LinearLayout>
+
+</LinearLayout>

@@ -8,4 +8,7 @@
     <string name="audios">Audios</string>
     <string name="apps">Apps</string>
     <string name="filename">filename</string>
+    <string name="todo">TODO</string>
+    <string name="send">send</string>
+    <string name="receive">receive</string>
 </resources>

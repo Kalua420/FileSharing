@@ -3,6 +3,7 @@ package com.example.first;
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.viewpager2.widget.ViewPager2;
@@ -12,6 +13,9 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.widget.GridView;
 import android.widget.Toast;
 
@@ -32,12 +36,14 @@ public class MainActivity extends AppCompatActivity {
     ViewPager2 viewPager;
     CustomAdaptor customAdaptor;
     GridView gridView;
+    Toolbar toolbar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         init();
+        setSupportActionBar(toolbar);
         if (Build.VERSION.SDK_INT>=34){
             android14RequestPermission();
         }else {
@@ -82,6 +88,7 @@ public class MainActivity extends AppCompatActivity {
         tabLayout = findViewById(R.id.tabLayout);
         viewPager = findViewById(R.id.viewPager);
         gridView = findViewById(R.id.gridView);
+        toolbar = findViewById(R.id.toolbar);
     }
     private void android14RequestPermission() {
         List<String> listPermissionsNeeded = new ArrayList<>();
@@ -114,5 +121,21 @@ public class MainActivity extends AppCompatActivity {
         @SuppressLint("UnsafeIntentLaunch") Intent intent = getIntent();
         finish();
         startActivity(intent);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        new MenuInflater(this).inflate(R.menu.option,menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        int itemId = item.getItemId();
+        if (itemId==R.id.connect){
+            Intent i = new Intent(getApplicationContext(),Connect.class);
+            startActivity(i);
+        }
+        return super.onOptionsItemSelected(item);
     }
 }
