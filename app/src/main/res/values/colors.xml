@@ -5,4 +5,5 @@
     <color name="lightBlue">#00EEFF</color>
     <color name="green">#8BC34A</color>
     <color name="red">#F44336</color>
+    <color name="selection_color">#22000000</color>
 </resources>

@@ -3,6 +3,7 @@ package com.example.first;
 import android.annotation.SuppressLint;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -40,8 +41,15 @@ public class Audios extends Fragment {
         ArrayList<String> audioFiles = fetchAudioFiles();
         Collections.reverse(audioFiles);
         gridView.setOnItemClickListener((adapterView, view1, i, l) -> {
+            FileTransferClient fileTransferClient;
             String item = audioFiles.get(i);
-            Toast.makeText(getContext(),audioFiles.get(i),Toast.LENGTH_SHORT).show();
+            String ip = null;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                ip = Connect.ipToConnect;
+            }
+            fileTransferClient = new FileTransferClient();
+            fileTransferClient.sendFile(ip,item);
+            Toast.makeText(getContext(),"Sending :"+audioFiles.get(i),Toast.LENGTH_SHORT).show();
         });
     }
     private ArrayList<String> fetchAudioFiles() {

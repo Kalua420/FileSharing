@@ -1,67 +1,126 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    tools:context=".Connect">
-    <com.google.android.material.appbar.AppBarLayout
+    android:orientation="vertical">
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-        <androidx.appcompat.widget.Toolbar
+        android:layout_height="?attr/actionBarSize"
+        android:background="?attr/colorPrimary"
+        android:elevation="4dp"
+        android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
+        app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
+    <androidx.appcompat.widget.AppCompatButton
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/stop"
+        android:textAllCaps="true"
+        android:id="@+id/stopServer"/>
+<!--    <TextView-->
+<!--        android:id="@+id/transferSpeed"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:gravity="center"-->
+<!--        android:padding="8dp"-->
+<!--        android:textSize="16sp" />-->
+    <androidx.cardview.widget.CardView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        app:cardCornerRadius="25dp" >
+
+        <TextView
+            android:id="@+id/transferSpeed"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0%"
+            android:textStyle="bold"
+            android:layout_marginTop="100dp"
+            android:layout_gravity="center_horizontal"
+            android:textSize="16sp"/>
+
+        <ProgressBar
+            android:id="@+id/progressBar"
+            android:layout_width="230dp"
+            android:layout_height="230dp"
+            android:indeterminateOnly="false"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginEnd="10dp"
+            android:progressDrawable="@drawable/circle"
+            android:progress="0">
+        </ProgressBar>
+
+    </androidx.cardview.widget.CardView>
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="5dp"
+        android:layout_weight="1"
+        android:fillViewport="true">
+
+        <TextView
+            android:id="@+id/textViewContent"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/toolbar">
+            android:padding="16dp"
+            android:textIsSelectable="true" />
 
-        </androidx.appcompat.widget.Toolbar>
-    </com.google.android.material.appbar.AppBarLayout>
-
+    </ScrollView>
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:gravity="center">
-        <LinearLayout android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:layout_marginEnd="45dp"
-            android:id="@+id/send"
-            android:orientation="vertical"
-            tools:ignore="UseCompoundDrawables">
-            <ImageView  android:layout_width="100dp"
-                android:src="@drawable/baseline_send_24"
-                android:layout_height="100dp"
-                tools:ignore="ContentDescription" />
-            <TextView android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:contentDescription="@string/todo"
-                android:textSize="25sp"
-                android:textAllCaps="true"
-                android:text="@string/send"
-                android:textStyle="bold"
-                android:fontFamily="serif"/>
-        </LinearLayout>
-        <LinearLayout android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:id="@+id/recv"
-            android:orientation="vertical"
-            tools:ignore="UseCompoundDrawables">
+        android:layout_height="wrap_content"
+        android:baselineAligned="false"
+        android:padding="5dp"
+        android:orientation="horizontal">
 
-            <ImageView
-                android:layout_width="100dp"
-                android:layout_height="100dp"
-                android:src="@drawable/baseline_get_app_24"
-                tools:ignore="ContentDescription,ImageContrastCheck" />
-            <TextView android:layout_width="wrap_content"
+        <LinearLayout
+            android:id="@+id/send"
+            android:layout_width="0dp"
+            android:layout_height="200dp"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:background="@drawable/baseline_upload_24"
+            android:orientation="vertical">
+            <TextView
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textSize="25sp"
                 android:textAllCaps="true"
-                android:text="@string/receive"
+                android:fontFamily="serif"
+                android:paddingBottom="20dp"
+                android:textColor="@color/black"
                 android:textStyle="bold"
-                android:fontFamily="serif"/>
+                android:text="@string/send" />
+        </LinearLayout>
+        <LinearLayout
+            android:id="@+id/recv"
+            android:layout_width="0dp"
+            android:layout_height="200dp"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:paddingBottom="10dp"
+            android:background="@drawable/baseline_download_24">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAllCaps="true"
+                android:fontFamily="serif"
+                android:textColor="@color/black"
+                android:paddingBottom="20dp"
+                android:textStyle="bold"
+                android:text="@string/receive" />
         </LinearLayout>
     </LinearLayout>
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/scan"
+        android:textAllCaps="true"
+        android:fontFamily="sans-serif-black"
+        android:letterSpacing=".2"
+        android:id="@+id/qrScan"/>
 
 </LinearLayout>

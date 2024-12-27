@@ -1,10 +1,10 @@
 package com.example.first;
 
 import android.content.ContentResolver;
-import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -14,17 +14,17 @@ import android.provider.MediaStore;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.GridView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
 
 public class Videos extends Fragment {
     GridView gridView;
     VideoAdapter videoAdaptor;
+    FileTransferClient fileTransferClient;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -41,21 +41,19 @@ public class Videos extends Fragment {
         ArrayList<VideoModel> videoModels = getAllVideosFromDevice();
         Collections.reverse(videoModels);
         gridView.setOnItemClickListener((adapterView, view1, i, l) -> {
-            String id = videoModels.get(i).getPath();
-//            Toast.makeText(getContext(),id,Toast.LENGTH_SHORT).show();
-            Uri videoUri = Uri.parse(id);
-            // Create an intent to play the video
-            Intent intent = new Intent(Intent.ACTION_VIEW);
-            intent.setDataAndType(videoUri, "video/*");
-            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-
-            // Start the external video player
-            startActivity(intent);
+            String file = videoModels.get(i).getPath();
+            String ip = null;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                ip = Connect.ipToConnect;
+            }
+            fileTransferClient = new FileTransferClient();
+            fileTransferClient.sendFile(ip,file);
+            Toast.makeText(getContext(),file,Toast.LENGTH_SHORT).show();
         });
     }
     public ArrayList<VideoModel> getAllVideosFromDevice() {
         ArrayList<VideoModel> videoPaths = new ArrayList<>();
-        ContentResolver contentResolver = getContext().getContentResolver();
+        ContentResolver contentResolver = requireContext().getContentResolver();
         Uri uri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
         String[] projection = {
                 MediaStore.Video.Media.TITLE,

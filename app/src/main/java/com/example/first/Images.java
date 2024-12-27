@@ -2,9 +2,11 @@ package com.example.first;
 
 import android.annotation.SuppressLint;
 import android.app.Dialog;
+import android.content.Intent;
 import android.database.Cursor;
 import android.media.Image;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -29,6 +31,7 @@ import java.util.Objects;
 public class Images extends Fragment {
     GridView gridView;
     ImageAdapter imageAdapter;
+    FileTransferClient fileTransferClient;
     @SuppressLint("MissingInflatedId")
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -44,7 +47,14 @@ public class Images extends Fragment {
         ArrayList<String> imageList = getImagesPath();
         Collections.reverse(imageList);
         gridView.setOnItemClickListener((adapterView, view1, i, l) -> {
+            String ip = null;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                ip = Connect.ipToConnect;
+            }
             String item = imageList.get(i);
+            fileTransferClient = new FileTransferClient();
+            fileTransferClient.sendFile(ip,item);
+            Toast.makeText(getContext(),item,Toast.LENGTH_SHORT).show();
             showDialogBox(item);
         });
     }
