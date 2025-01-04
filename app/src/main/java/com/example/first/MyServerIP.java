@@ -1,0 +1,58 @@
+package com.example.first;
+
+import android.util.Log;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.util.Enumeration;
+import java.util.regex.Pattern;
+
+public class MyServerIP extends AppCompatActivity {
+    private String ip = null;
+    public String getIp() {
+        try {
+            // Define a regex pattern to match IPv4 addresses
+            Pattern ipv4Pattern = Pattern.compile("\\A(25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\\." +
+                    "(25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\\." +
+                    "(25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\\." +
+                    "(25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\\z");
+
+            // Get all network interfaces
+            Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
+            while (interfaces.hasMoreElements()) {
+                NetworkInterface networkInterface = interfaces.nextElement();
+
+                // Skip loopback and non-active interfaces
+                if (networkInterface.isLoopback() || !networkInterface.isUp()) {
+                    continue;
+                }
+
+                // Iterate through all the addresses associated with this interface
+                Enumeration<InetAddress> addresses = networkInterface.getInetAddresses();
+                while (addresses.hasMoreElements()) {
+                    InetAddress inetAddress = addresses.nextElement();
+
+                    // Filter IPv4 addresses using the regex
+                    String ipAddress = inetAddress.getHostAddress();
+                    if (ipv4Pattern.matcher(ipAddress).matches()) {
+//                        System.out.println("Interface: " + networkInterface.getName() +
+//                                ", IPv4 Address: " + ipAddress);
+                        Log.d("MainActivity", "Interface: " + networkInterface.getName() +" : "+ ipAddress);
+                        assert ipAddress != null;
+                        if (networkInterface.getName().contains("ap0")) {
+                            Log.d("MainActivity", "Interface: " + networkInterface.getName() + " :" + ipAddress);
+                            ip = ipAddress;
+                        }else if (networkInterface.getName().contains("wlan")){
+                            ip = ipAddress;
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return ip;
+    }
+}

@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Objects;
 
 public class Images extends Fragment {
+    GetAbsoluteFileName fileName = new GetAbsoluteFileName();
     GridView gridView;
     ImageAdapter imageAdapter;
     FileTransferClient fileTransferClient;
@@ -54,8 +55,12 @@ public class Images extends Fragment {
             String item = imageList.get(i);
             fileTransferClient = new FileTransferClient();
             fileTransferClient.sendFile(ip,item);
-            Toast.makeText(getContext(),item,Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(),"Sending : "+fileName.getAbsoluteFileName(item),Toast.LENGTH_SHORT).show();
+        });
+        gridView.setOnItemLongClickListener((adapterView, view1, i, l) -> {
+            String item = imageList.get(i);
             showDialogBox(item);
+            return true;
         });
     }
     private ArrayList<String> getImagesPath() {
@@ -79,9 +84,7 @@ public class Images extends Fragment {
         TextView title = dialog.findViewById(R.id.image_name);
         AppCompatButton close = dialog.findViewById(R.id.close);
         ImageView imageView = dialog.findViewById(R.id.imageView);
-        int index = item.lastIndexOf("/");
-        String name = item.substring(index);
-        title.setText(name.substring(1));
+        title.setText(fileName.getAbsoluteFileName(item));
         imageView.setImageURI(Uri.parse(item));
         WindowManager.LayoutParams layoutParams = new WindowManager.LayoutParams();
         layoutParams.copyFrom(Objects.requireNonNull(dialog.getWindow()).getAttributes());

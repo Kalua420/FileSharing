@@ -19,8 +19,6 @@ public class CustomAdaptor extends FragmentStateAdapter {
             case 2:
                 return new Videos();
             case 3:
-                return new Apps();
-            case 4:
                 return new Files();
             default:
                 return new Images();

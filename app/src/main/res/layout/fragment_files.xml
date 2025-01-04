@@ -5,9 +5,35 @@
     android:layout_height="match_parent"
     tools:context=".Files">
 
-    <GridView
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/gridFiles"/>
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:padding="16dp"
+        tools:ignore="UselessParent">
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/selectedFilesRecyclerView"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:layout_marginTop="16dp" />
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/selectFilesButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textAllCaps="true"
+            android:fontFamily="sans-serif-black"
+            android:letterSpacing=".05"
+            android:text="Select Files"
+            tools:ignore="HardcodedText" />
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/send"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textAllCaps="true"
+            android:fontFamily="sans-serif-black"
+            android:letterSpacing=".2"
+            android:text="@string/send" />
+    </LinearLayout>
 
 </FrameLayout>

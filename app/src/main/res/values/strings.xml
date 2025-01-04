@@ -12,7 +12,8 @@
     <string name="send">send</string>
     <string name="receive">receive</string>
     <string name="stop">stop</string>
-    <string name="scan">scan</string>
+    <string name="scan">show qr</string>
     <string name="close">Close</string>
     <string name="qr_code">QR Code</string>
+    <string name="icon">image</string>
 </resources>

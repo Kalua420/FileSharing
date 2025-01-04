@@ -64,7 +64,7 @@ public class MainActivity extends AppCompatActivity {
         images = findViewById(R.id.images);
         audios = findViewById(R.id.audios);
         videos = findViewById(R.id.videos);
-        apps = findViewById(R.id.apps);
+//        apps = findViewById(R.id.apps);
         files = findViewById(R.id.files);
         tabLayout = findViewById(R.id.tabLayout);
         viewPager = findViewById(R.id.viewPager);

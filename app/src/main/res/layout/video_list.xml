@@ -4,14 +4,14 @@
     android:orientation="vertical"
     android:padding="8dp">
 
-    <ImageView
+    <androidx.appcompat.widget.AppCompatImageView
         android:id="@+id/videoThumbnail"
         android:layout_width="150dp"
         android:layout_height="150dp"
         android:src="@drawable/ic_launcher_foreground"
         android:scaleType="centerCrop" />
 
-    <TextView
+    <androidx.appcompat.widget.AppCompatTextView
         android:id="@+id/videoTitle"
         android:layout_width="wrap_content"
         android:layout_height="20dp"
