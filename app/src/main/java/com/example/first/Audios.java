@@ -1,6 +1,8 @@
 package com.example.first;
 
 import android.annotation.SuppressLint;
+import android.app.Dialog;
+import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
@@ -19,11 +21,14 @@ import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
 
 public class Audios extends Fragment {
     GridView gridView;
     ArrayList<String> audioList;
     AudioAdapter audioAdapter;
+    GetAbsoluteFileName fileName = new GetAbsoluteFileName();
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -49,7 +54,13 @@ public class Audios extends Fragment {
             }
             fileTransferClient = new FileTransferClient();
             fileTransferClient.sendFile(ip,item);
-            Toast.makeText(getContext(),"Sending :"+audioFiles.get(i),Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(),"Sending : "+fileName.getAbsoluteFileName(item),Toast.LENGTH_SHORT).show();
+        });
+        gridView.setOnItemLongClickListener((adapterView, view1, i, l) -> {
+            String item = audioFiles.get(i);
+            MediaHandler mediaHandler = new MediaHandler();
+            mediaHandler.playAudioWithExternalPlayer(requireContext(),Uri.parse(item));
+            return true;
         });
     }
     private ArrayList<String> fetchAudioFiles() {

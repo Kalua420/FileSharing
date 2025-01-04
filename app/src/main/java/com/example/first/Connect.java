@@ -17,6 +17,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.IBinder;
 import android.provider.Settings;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -44,17 +45,7 @@ import java.util.Objects;
 
 @RequiresApi(api = Build.VERSION_CODES.P)
 public class Connect extends AppCompatActivity {
-    private static final int PERMISSION_REQUEST_CODE = 123;
-    private static final String[] REQUIRED_PERMISSIONS = {
-            Manifest.permission.READ_EXTERNAL_STORAGE,
-            Manifest.permission.WRITE_EXTERNAL_STORAGE,
-            Manifest.permission.CAMERA,
-            Manifest.permission.ACCESS_FINE_LOCATION,
-            Manifest.permission.ACCESS_WIFI_STATE,
-            Manifest.permission.CHANGE_WIFI_STATE,
-            Manifest.permission.FOREGROUND_SERVICE
-    };
-
+    MyServerIP ServerIP = new MyServerIP();
     private LinearLayout send, receive;
     private Toolbar toolbar;
     @SuppressLint("StaticFieldLeak")
@@ -62,7 +53,7 @@ public class Connect extends AppCompatActivity {
     private FileTransferServer fileTransferService;
     private boolean isBound = false;
     @SuppressLint("StaticFieldLeak")
-    public static TextView textViewContent;
+    public static TextView textViewContent, clientConnected;
     @SuppressLint("StaticFieldLeak")
     public static ProgressBar progressBar;
     private Button qrScan;
@@ -94,37 +85,56 @@ public class Connect extends AppCompatActivity {
 
     private void setupClickListeners() {
         WifiManager wifiManager = (WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE);
-
-        send.setOnClickListener(v -> handleSendClick(wifiManager));
-        receive.setOnClickListener(v -> handleReceiveClick());
+        send.setOnClickListener(v -> {
+            if (ipToConnect.isEmpty()){
+                handleSendClick(wifiManager);
+            }else {
+                showSnackbar("Connecting to: " + ipToConnect);
+                Intent i = new Intent(getApplicationContext(), MainActivity.class);
+                startActivity(i);
+            }
+        });
+        receive.setOnClickListener(v -> handleReceiveClick(wifiManager));
         stopServer.setOnClickListener(v -> handleStopServerClick());
         qrScan.setOnClickListener(v -> handleQrScanClick());
     }
 
     private void handleSendClick(WifiManager wifiManager) {
-        if (!wifiManager.isWifiEnabled()) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                showWifiSettingsDialog();
-            } else {
-                wifiManager.setWifiEnabled(true);
+        if (ipToConnect.isEmpty()){
+            if (myServerIP.isEmpty()){
+                if (!isHotspotEnabled(getApplicationContext())){
+                    if (!wifiManager.isWifiEnabled()) {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                            showWifiSettingsDialog();
+                        } else {
+                            wifiManager.setWifiEnabled(true);
+                        }
+                        return;
+                    }
+                }
             }
-            return;
-        }
-
-        if (ipToConnect.isEmpty()) {
-            startScanner();
-        } else {
+            if (ipToConnect.isEmpty()) {
+                startScanner();
+            } else {
+                showSnackbar("Connecting to: " + ipToConnect);
+                Intent i = new Intent(getApplicationContext(), MainActivity.class);
+                startActivity(i);
+            }
+        }else {
             showSnackbar("Connecting to: " + ipToConnect);
             Intent i = new Intent(getApplicationContext(), MainActivity.class);
             startActivity(i);
         }
     }
 
-    private void handleReceiveClick() {
-        if (!isHotspotEnabled(getApplicationContext())) {
-            showSnackbar("Hotspot is disabled. Please enable it.");
-            enableHotspot();
-            return;
+    private void handleReceiveClick(WifiManager wifiManager) {
+        myServerIP = ServerIP.getIp();
+        if (!wifiManager.isWifiEnabled()){
+            if (!isHotspotEnabled(getApplicationContext())) {
+                showSnackbar("Hotspot is disabled. Please enable it.");
+                enableHotspot();
+                return;
+            }
         }
         if (fileTransferService == null) {
             Intent intent = new Intent(this, FileTransferServer.class);
@@ -136,8 +146,6 @@ public class Connect extends AppCompatActivity {
             showSnackbar("Starting file transfer server...");
             return;
         }
-
-        myServerIP = fileTransferService.getServerIp();
         if (!myServerIP.isEmpty()) {
             showSnackbar("Server IP: " + myServerIP);
             generateQRCode(myServerIP);
@@ -149,6 +157,12 @@ public class Connect extends AppCompatActivity {
                 isBound = false;
             }
             fileTransferService = null;
+        }
+        try {
+            assert fileTransferService != null;
+            ipToConnect = fileTransferService.clientIp;
+        } catch (RuntimeException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -167,16 +181,24 @@ public class Connect extends AppCompatActivity {
     }
 
     private void handleQrScanClick() {
+        MyServerIP myServerIP1 = new MyServerIP();
+        ipToConnect = myServerIP1.getIp();
+        Toast.makeText(getApplicationContext(),ipToConnect,Toast.LENGTH_SHORT).show();
         if (fileTransferService != null) {
-            String ip = fileTransferService.getServerIp();
-            if (!ip.isEmpty()) {
-                showSnackbar("Server IP: " + ip);
-                generateQRCode(ip);
+            if (!myServerIP.isEmpty()) {
+                showSnackbar("Server IP: " + myServerIP);
+                generateQRCode(myServerIP);
             } else {
                 showSnackbar("Server IP not available");
             }
         } else {
             showSnackbar("Server is not running");
+        }
+        try {
+            assert fileTransferService != null;
+            ipToConnect = fileTransferService.clientIp;
+        } catch (RuntimeException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -205,10 +227,7 @@ public class Connect extends AppCompatActivity {
                     intent.addCategory("android.intent.category.DEFAULT");
                     intent.setData(Uri.parse(String.format("package:%s", getApplicationContext().getPackageName())));
                     startActivityForResult(intent, MANAGE_EXTERNAL_STORAGE_PERMISSION_REQUEST_CODE);
-                } catch (Exception e) {
-                    Intent intent = new Intent();
-                    intent.setAction(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION);
-                    startActivityForResult(intent, MANAGE_EXTERNAL_STORAGE_PERMISSION_REQUEST_CODE);
+                } catch (Exception ignored) {
                 }
             }
         } else {
@@ -262,7 +281,7 @@ public class Connect extends AppCompatActivity {
         speed = findViewById(R.id.transferSpeed);
         stopServer = findViewById(R.id.stopServer);
         qrScan = findViewById(R.id.qrScan);
-
+        clientConnected = findViewById(R.id.clientConnected);
         // Initialize progress bar
         if (progressBar != null) {
             progressBar.setMax(100);
@@ -285,11 +304,7 @@ public class Connect extends AppCompatActivity {
 
     private void enableHotspot() {
         Intent intent;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            intent = new Intent(Settings.Panel.ACTION_WIFI);
-        } else {
-            intent = new Intent(Settings.ACTION_WIRELESS_SETTINGS);
-        }
+        intent = new Intent(Settings.ACTION_WIRELESS_SETTINGS);
         startActivity(intent);
     }
 
@@ -302,9 +317,8 @@ public class Connect extends AppCompatActivity {
             showSnackbar("Server connected");
 
             // Generate QR code automatically when service is connected
-            String ip = fileTransferService.getServerIp();
-            if (!ip.isEmpty()) {
-                generateQRCode(ip);
+            if (!myServerIP.isEmpty()) {
+                generateQRCode(myServerIP);
             }
         }
 
@@ -389,5 +403,13 @@ public class Connect extends AppCompatActivity {
         closeQr.setOnClickListener(v1 -> dialog.dismiss());
         dialog.setCancelable(true);
         dialog.show();
+    }
+    static class Fetch implements Runnable{
+
+        @Override
+        public void run() {
+            MyServerIP myServerIP1 = new MyServerIP();
+            myServerIP = myServerIP1.getIp();
+        }
     }
 }

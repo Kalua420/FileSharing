@@ -6,10 +6,8 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
-
 import android.provider.MediaStore;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -25,6 +23,7 @@ public class Videos extends Fragment {
     GridView gridView;
     VideoAdapter videoAdaptor;
     FileTransferClient fileTransferClient;
+    GetAbsoluteFileName fileName = new GetAbsoluteFileName();
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -48,7 +47,13 @@ public class Videos extends Fragment {
             }
             fileTransferClient = new FileTransferClient();
             fileTransferClient.sendFile(ip,file);
-            Toast.makeText(getContext(),file,Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(),"Sending : "+fileName.getAbsoluteFileName(file),Toast.LENGTH_SHORT).show();
+        });
+        gridView.setOnItemLongClickListener((adapterView, view1, i, l) -> {
+            String item = videoModels.get(i).getPath();
+            MediaHandler mediaHandler = new MediaHandler();
+            mediaHandler.playAudioWithExternalPlayer(requireContext(),Uri.parse(item));
+            return true;
         });
     }
     public ArrayList<VideoModel> getAllVideosFromDevice() {

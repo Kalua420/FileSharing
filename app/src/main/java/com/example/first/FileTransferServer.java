@@ -7,19 +7,19 @@ import android.app.NotificationManager;
 import android.app.Service;
 import android.content.Intent;
 import android.content.pm.ServiceInfo;
-import android.net.InetAddresses;
 import android.net.wifi.WifiManager;
 import android.os.Binder;
 import android.os.Build;
 import android.os.Environment;
 import android.os.IBinder;
 import android.util.Log;
-import android.widget.Toast;
+
 import androidx.core.app.NotificationCompat;
 import java.io.*;
 import java.net.*;
 import java.text.DecimalFormat;
 import java.util.Enumeration;
+import java.util.Objects;
 
 public class FileTransferServer extends Service {
     private static final String TAG = "FileTransferServer";
@@ -30,6 +30,7 @@ public class FileTransferServer extends Service {
     private ServerSocket serverSocket;
     private Thread serverThread;
     private String serverIp = "";
+    public String clientIp = "";
     private final IBinder binder = new LocalBinder();
     private static final String FileDir = "/storage/emulated/0/";
 
@@ -97,23 +98,6 @@ public class FileTransferServer extends Service {
         stopFileTransferServer();
     }
 
-    @SuppressLint("DefaultLocale")
-    public String getServerIp() {
-        if (serverIp.isEmpty()) {
-            try {
-                WifiManager wifiManager = (WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE);
-                int ipAddress = wifiManager.getConnectionInfo().getIpAddress();
-                serverIp = String.format("%d.%d.%d.%d",
-                        (ipAddress & 0xff),
-                        (ipAddress >> 8 & 0xff),
-                        (ipAddress >> 16 & 0xff),
-                        (ipAddress >> 24 & 0xff));
-            } catch (Exception e) {
-                Log.e(TAG, "Error getting IP address", e);
-            }
-        }
-        return serverIp;
-    }
 
     private void startFileTransferServer() {
         updateUI("Server starting...");
@@ -136,7 +120,9 @@ public class FileTransferServer extends Service {
                     try {
                         serverIp = getLocalIpAddress();
                         Socket clientSocket = serverSocket.accept();
-                        updateUI("Client connected: " + clientSocket.getInetAddress());
+                        clientConnected("Client connected: " + clientSocket.getInetAddress());
+                        clientIp = String.valueOf(clientSocket.getInetAddress());
+                        Log.d("client ip : ",clientIp);
                         new FileTransferHandler(clientSocket, uploadDir.getAbsolutePath()).start();
                     } catch (IOException e) {
                         if (isRunning) {
@@ -176,7 +162,7 @@ public class FileTransferServer extends Service {
                 while (addresses.hasMoreElements()) {
                     InetAddress addr = addresses.nextElement();
                     // Filter for IPv4 addresses
-                    if (addr.getHostAddress().indexOf(':') < 0) {
+                    if (Objects.requireNonNull(addr.getHostAddress()).indexOf(':') < 0) {
                         return addr.getHostAddress();
                     }
                 }
@@ -190,19 +176,23 @@ public class FileTransferServer extends Service {
     private void updateUI(final String message) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             if (Connect.textViewContent != null) {
-                runOnUiThread(() -> {
-                    Connect.textViewContent.append(message + "\n");
-                });
+                runOnUiThread(() -> Connect.textViewContent.append(message + "\n"));
+            }
+        }
+    }
+    private void clientConnected(final String clientIp){
+        if (Build.VERSION.SDK_INT>=Build.VERSION_CODES.Q){
+            if (Connect.clientConnected!=null){
+                runOnUiThread(()->Connect.clientConnected.setText(clientIp));
             }
         }
     }
 
+
     private void updateProgress(int progress) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             if (Connect.progressBar != null) {
-                runOnUiThread(() -> {
-                    Connect.progressBar.setProgress(progress);
-                });
+                runOnUiThread(() -> Connect.progressBar.setProgress(progress));
             }
         }
     }
@@ -243,6 +233,7 @@ public class FileTransferServer extends Service {
             this.uploadDirectory = uploadDirectory;
         }
 
+        @SuppressLint("NewApi")
         @Override
         public void run() {
             try {
@@ -294,7 +285,6 @@ public class FileTransferServer extends Service {
 
                 DataOutputStream dos = new DataOutputStream(clientSocket.getOutputStream());
                 dos.writeUTF("File transferred successfully");
-
                 clientSocket.close();
             } catch (IOException e) {
                 updateUI("Error during file transfer: " + e.getMessage());
@@ -312,5 +302,8 @@ public class FileTransferServer extends Service {
         } else {
             Log.d("FileTransferServer", "Directory already exists: " + directory.getAbsolutePath());
         }
+    }
+    public String getClientIp() {
+        return clientIp;
     }
 }
