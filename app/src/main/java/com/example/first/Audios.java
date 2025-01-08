@@ -1,6 +1,5 @@
 package com.example.first;
 
-import android.annotation.SuppressLint;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
@@ -12,9 +11,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.GridView;
-import android.widget.TextView;
 import android.widget.Toast;
-
 import java.util.ArrayList;
 import java.util.Collections;
 
