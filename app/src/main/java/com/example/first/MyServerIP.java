@@ -9,6 +9,7 @@ import java.net.NetworkInterface;
 import java.util.Enumeration;
 import java.util.regex.Pattern;
 
+/** @noinspection CallToPrintStackTrace*/
 public class MyServerIP extends AppCompatActivity {
     private String ip = null;
     public String getIp() {
@@ -33,12 +34,9 @@ public class MyServerIP extends AppCompatActivity {
                 Enumeration<InetAddress> addresses = networkInterface.getInetAddresses();
                 while (addresses.hasMoreElements()) {
                     InetAddress inetAddress = addresses.nextElement();
-
-                    // Filter IPv4 addresses using the regex
                     String ipAddress = inetAddress.getHostAddress();
+
                     if (ipv4Pattern.matcher(ipAddress).matches()) {
-//                        System.out.println("Interface: " + networkInterface.getName() +
-//                                ", IPv4 Address: " + ipAddress);
                         Log.d("MainActivity", "Interface: " + networkInterface.getName() +" : "+ ipAddress);
                         assert ipAddress != null;
                         if (networkInterface.getName().contains("ap0")) {

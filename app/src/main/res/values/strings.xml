@@ -1,18 +1,14 @@
 <resources>
     <string name="app_name">ShareGT</string>
     <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="videos">Videos</string>
     <string name="images">Images</string>
     <string name="files">Files</string>
     <string name="audios">Audios</string>
-    <string name="apps">Apps</string>
     <string name="filename">filename</string>
-    <string name="todo">TODO</string>
     <string name="send">send</string>
     <string name="receive">receive</string>
     <string name="stop">stop</string>
-    <string name="scan">show qr</string>
     <string name="close">Close</string>
     <string name="qr_code">QR Code</string>
     <string name="icon">image</string>

@@ -1,18 +1,12 @@
 package com.example.first;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.viewpager2.widget.ViewPager2;
-import android.content.Intent;
-import android.content.pm.PackageManager;
+
 import android.os.Build;
 import android.os.Bundle;
-import android.provider.Settings;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.widget.GridView;
 import com.google.android.material.tabs.TabLayout;
 import java.util.Objects;
@@ -20,7 +14,10 @@ import java.util.Objects;
 
 @RequiresApi(api = Build.VERSION_CODES.TIRAMISU)
 public class MainActivity extends AppCompatActivity {
-    com.google.android.material.tabs.TabItem images,audios,videos,apps,files;
+    com.google.android.material.tabs.TabItem images;
+    com.google.android.material.tabs.TabItem audios;
+    com.google.android.material.tabs.TabItem videos;
+    com.google.android.material.tabs.TabItem files;
     TabLayout tabLayout;
     ViewPager2 viewPager;
     CustomAdaptor customAdaptor;
@@ -64,7 +61,6 @@ public class MainActivity extends AppCompatActivity {
         images = findViewById(R.id.images);
         audios = findViewById(R.id.audios);
         videos = findViewById(R.id.videos);
-//        apps = findViewById(R.id.apps);
         files = findViewById(R.id.files);
         tabLayout = findViewById(R.id.tabLayout);
         viewPager = findViewById(R.id.viewPager);

@@ -45,6 +45,7 @@ import com.journeyapps.barcodescanner.ScanOptions;
 import java.lang.reflect.Method;
 import java.util.Objects;
 
+/** @noinspection ALL*/
 @RequiresApi(api = Build.VERSION_CODES.P)
 public class Connect extends AppCompatActivity {
     MyServerIP ServerIP = new MyServerIP();
@@ -196,6 +197,7 @@ public class Connect extends AppCompatActivity {
                         showSnackbar("WiFi is required for file transfers"))
                 .show();
     }
+
     private void checkAndRequestPermissions() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             // Android 11 (API 30) and above
@@ -386,7 +388,6 @@ public class Connect extends AppCompatActivity {
         new MenuInflater(this).inflate(R.menu.option,menu);
         return super.onCreateOptionsMenu(menu);
     }
-
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         int itemId = item.getItemId();

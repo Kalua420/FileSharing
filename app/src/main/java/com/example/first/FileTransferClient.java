@@ -13,7 +13,7 @@ import java.net.Socket;
 import java.nio.file.Files;
 import java.text.DecimalFormat;
 
-/** @noinspection deprecation*/
+/** @noinspection ALL*/
 public class FileTransferClient {
     private static final String TAG = "FileTransferClient";
     private static final int BUFFER_SIZE = 65536;

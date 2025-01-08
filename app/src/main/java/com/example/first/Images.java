@@ -2,17 +2,13 @@ package com.example.first;
 
 import android.annotation.SuppressLint;
 import android.app.Dialog;
-import android.content.Intent;
 import android.database.Cursor;
-import android.media.Image;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-
 import androidx.annotation.NonNull;
 import androidx.appcompat.widget.AppCompatButton;
 import androidx.fragment.app.Fragment;
-
 import android.provider.MediaStore;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -22,10 +18,8 @@ import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 import java.util.Objects;
 
 public class Images extends Fragment {
@@ -92,8 +86,6 @@ public class Images extends Fragment {
         layoutParams.height = WindowManager.LayoutParams.WRAP_CONTENT; // or any custom height
         dialog.getWindow().setAttributes(layoutParams);
         close.setOnClickListener(v -> dialog.dismiss());
-
-        // Show the dialog
         dialog.show();
     }
 }

@@ -1,6 +1,5 @@
 package com.example.first;
 
-import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;

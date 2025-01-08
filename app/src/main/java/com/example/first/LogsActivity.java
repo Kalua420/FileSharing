@@ -1,7 +1,5 @@
 package com.example.first;
 
-import static java.security.AccessController.getContext;
-
 import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.widget.ScrollView;
@@ -12,9 +10,6 @@ import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.AppCompatButton;
 import androidx.appcompat.widget.Toolbar;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 import androidx.core.widget.NestedScrollView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
@@ -25,6 +20,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Objects;
 
+/** @noinspection CallToPrintStackTrace*/
 public class LogsActivity extends AppCompatActivity {
     TextView textView;
     NestedScrollView scrollView;
@@ -48,7 +44,6 @@ public class LogsActivity extends AppCompatActivity {
         Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
         readAndDisplayFile();
         clearLogs.setOnClickListener(v -> {
-            File file = new File("/storage/emulated/0/ShareGT/.logs.txt");
             if (!isLogFileEmpty()){
                 eraseLogFileContent();
                 Toast.makeText(getApplicationContext(), "Logs cleared successfully", Toast.LENGTH_SHORT).show();
@@ -57,14 +52,9 @@ public class LogsActivity extends AppCompatActivity {
                 Toast.makeText(getApplicationContext(), "No Logs To Clear", Toast.LENGTH_SHORT).show();
             }
         });
-        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-            @Override
-            public void onRefresh() {
-                refreshData();
-            }
-        });
-
+        swipeRefreshLayout.setOnRefreshListener(this::refreshData);
     }
+
     private void readAndDisplayFile() {
         File file = new File(fileDir);
 
@@ -90,10 +80,12 @@ public class LogsActivity extends AppCompatActivity {
             Toast.makeText(getApplicationContext(), "No Logs", Toast.LENGTH_SHORT).show();
         }
     }
+
     private void refreshData() {
         readAndDisplayFile();
         swipeRefreshLayout.setRefreshing(false);
     }
+
     public void eraseLogFileContent() {
         File logFile = new File(fileDir);
 
@@ -119,6 +111,7 @@ public class LogsActivity extends AppCompatActivity {
             e.printStackTrace();
         }
     }
+
     public boolean isLogFileEmpty() {
         File logFile = new File(fileDir);
 

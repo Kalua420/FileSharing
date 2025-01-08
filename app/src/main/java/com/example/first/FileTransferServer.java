@@ -5,16 +5,13 @@ import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.Service;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ServiceInfo;
-import android.net.wifi.WifiManager;
 import android.os.Binder;
 import android.os.Build;
 import android.os.Environment;
 import android.os.IBinder;
 import android.util.Log;
-import android.widget.Toast;
 
 import androidx.core.app.NotificationCompat;
 import java.io.*;
@@ -22,10 +19,9 @@ import java.net.*;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Enumeration;
 import java.util.Locale;
-import java.util.Objects;
 
+/** @noinspection CallToPrintStackTrace*/
 public class FileTransferServer extends Service {
     private static final String TAG = "FileTransferServer";
     private static final int PORT = 5000;
@@ -34,12 +30,10 @@ public class FileTransferServer extends Service {
     private boolean isRunning = false;
     private ServerSocket serverSocket;
     private Thread serverThread;
-    private String serverIp = "";
     public String clientIp = "";
     private final IBinder binder = new LocalBinder();
     private static final String FileDir = "/storage/emulated/0/";
     private static final String FILE_NAME = "/storage/emulated/0/ShareGT/";
-
 
     public class LocalBinder extends Binder {
         FileTransferServer getService() {
@@ -105,7 +99,6 @@ public class FileTransferServer extends Service {
         stopFileTransferServer();
     }
 
-
     private void startFileTransferServer() {
         updateUI("Server starting...");
         serverThread = new Thread(() -> {
@@ -117,7 +110,6 @@ public class FileTransferServer extends Service {
                         createDirectory(uploadDir);
                     }
                 }
-//                File uploadDir = new File(getExternalFilesDir(null), "server_uploads");
                 if (!uploadDir.exists()) {
                     uploadDir.mkdirs();
                 }
@@ -125,7 +117,6 @@ public class FileTransferServer extends Service {
                 updateUI("Server started on port " + PORT);
                 while (isRunning) {
                     try {
-                        serverIp = getLocalIpAddress();
                         Socket clientSocket = serverSocket.accept();
                         clientConnected("Client connected: " + clientSocket.getInetAddress());
                         clientIp = String.valueOf(clientSocket.getInetAddress());
@@ -158,49 +149,26 @@ public class FileTransferServer extends Service {
         }
         updateUI("Server stopped");
     }
-    private String getLocalIpAddress() {
-        try {
-            Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
-            while (interfaces.hasMoreElements()) {
-                NetworkInterface iface = interfaces.nextElement();
-                if (iface.isLoopback() || !iface.isUp()) continue;
-
-                Enumeration<InetAddress> addresses = iface.getInetAddresses();
-                while (addresses.hasMoreElements()) {
-                    InetAddress addr = addresses.nextElement();
-                    // Filter for IPv4 addresses
-                    if (Objects.requireNonNull(addr.getHostAddress()).indexOf(':') < 0) {
-                        return addr.getHostAddress();
-                    }
-                }
-            }
-        } catch (SocketException e) {
-            Log.e(TAG, "Error getting IP address", e);
-        }
-        return "0.0.0.0"; // fallback
-    }
 
     private void updateUI(final String message) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             if (Connect.textViewContent != null) {
-                runOnUiThread(() -> {
-                    Connect.textViewContent.append(message + "\n");
-                });
+                runOnUiThread(() -> Connect.textViewContent.append(message + "\n"));
             }
         }
     }
+
     private void updateLogs(final String message) {
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss a", Locale.getDefault());
         String timestamp = dateFormat.format(new Date());
         String logMessage = "[ "+timestamp+" ]\n" + message;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             if (Connect.textViewContent != null) {
-                runOnUiThread(() -> {
-                    createAndWriteFile(logMessage+"\n");
-                });
+                runOnUiThread(() -> createAndWriteFile(logMessage+"\n"));
             }
         }
     }
+
     private void clientConnected(final String clientIp){
         if (Build.VERSION.SDK_INT>=Build.VERSION_CODES.Q){
             if (Connect.clientConnected!=null){
@@ -208,7 +176,6 @@ public class FileTransferServer extends Service {
             }
         }
     }
-
 
     private void updateProgress(int progress) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
@@ -311,6 +278,7 @@ public class FileTransferServer extends Service {
             }
         }
     }
+
     private void createDirectory(File directory) {
         if (!directory.exists()) {
             boolean success = directory.mkdirs();
@@ -323,6 +291,7 @@ public class FileTransferServer extends Service {
             Log.d("FileTransferServer", "Directory already exists: " + directory.getAbsolutePath());
         }
     }
+
     private void createAndWriteFile(String content) {
         try {
             File file = new File(FILE_NAME, ".logs.txt");
@@ -344,4 +313,5 @@ public class FileTransferServer extends Service {
             e.printStackTrace();
         }
     }
+
 }
