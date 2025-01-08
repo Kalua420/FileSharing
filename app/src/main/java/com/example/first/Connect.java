@@ -17,9 +17,10 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.IBinder;
 import android.provider.Settings;
-import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
@@ -33,6 +34,7 @@ import androidx.appcompat.widget.AppCompatButton;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+
 import com.google.android.material.snackbar.Snackbar;
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.MultiFormatWriter;
@@ -56,7 +58,6 @@ public class Connect extends AppCompatActivity {
     public static TextView textViewContent, clientConnected;
     @SuppressLint("StaticFieldLeak")
     public static ProgressBar progressBar;
-    private Button qrScan;
     private static String savedLogText = "";
     static String ipToConnect = "";
     static String myServerIP = "";
@@ -96,7 +97,6 @@ public class Connect extends AppCompatActivity {
         });
         receive.setOnClickListener(v -> handleReceiveClick(wifiManager));
         stopServer.setOnClickListener(v -> handleStopServerClick());
-        qrScan.setOnClickListener(v -> handleQrScanClick());
     }
 
     private void handleSendClick(WifiManager wifiManager) {
@@ -131,7 +131,7 @@ public class Connect extends AppCompatActivity {
         myServerIP = ServerIP.getIp();
         if (!wifiManager.isWifiEnabled()){
             if (!isHotspotEnabled(getApplicationContext())) {
-                showSnackbar("Hotspot is disabled. Please enable it.");
+                Toast.makeText(getApplicationContext(), "Please enable Hotspot", Toast.LENGTH_SHORT).show();
                 enableHotspot();
                 return;
             }
@@ -177,28 +177,6 @@ public class Connect extends AppCompatActivity {
             showSnackbar("Server stopped");
         } else {
             showSnackbar("Server is not running");
-        }
-    }
-
-    private void handleQrScanClick() {
-        MyServerIP myServerIP1 = new MyServerIP();
-        ipToConnect = myServerIP1.getIp();
-        Toast.makeText(getApplicationContext(),ipToConnect,Toast.LENGTH_SHORT).show();
-        if (fileTransferService != null) {
-            if (!myServerIP.isEmpty()) {
-                showSnackbar("Server IP: " + myServerIP);
-                generateQRCode(myServerIP);
-            } else {
-                showSnackbar("Server IP not available");
-            }
-        } else {
-            showSnackbar("Server is not running");
-        }
-        try {
-            assert fileTransferService != null;
-            ipToConnect = fileTransferService.clientIp;
-        } catch (RuntimeException e) {
-            throw new RuntimeException(e);
         }
     }
 
@@ -280,7 +258,6 @@ public class Connect extends AppCompatActivity {
         progressBar = findViewById(R.id.progressBar);
         speed = findViewById(R.id.transferSpeed);
         stopServer = findViewById(R.id.stopServer);
-        qrScan = findViewById(R.id.qrScan);
         clientConnected = findViewById(R.id.clientConnected);
         // Initialize progress bar
         if (progressBar != null) {
@@ -404,12 +381,19 @@ public class Connect extends AppCompatActivity {
         dialog.setCancelable(true);
         dialog.show();
     }
-    static class Fetch implements Runnable{
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        new MenuInflater(this).inflate(R.menu.option,menu);
+        return super.onCreateOptionsMenu(menu);
+    }
 
-        @Override
-        public void run() {
-            MyServerIP myServerIP1 = new MyServerIP();
-            myServerIP = myServerIP1.getIp();
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        int itemId = item.getItemId();
+        if (itemId==R.id.logs){
+            Intent i = new Intent(getApplicationContext(),LogsActivity.class);
+            startActivity(i);
         }
+        return super.onOptionsItemSelected(item);
     }
 }

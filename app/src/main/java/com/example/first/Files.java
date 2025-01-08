@@ -13,6 +13,7 @@ import android.provider.OpenableColumns;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.AppCompatButton;
@@ -48,6 +49,9 @@ public class Files extends Fragment {
         // Setup button click listener
         selectFilesButton.setOnClickListener(v -> openFileChooser());
         sendButton.setOnClickListener(v -> {
+            if (selectedFiles.size()>1){
+                Toast.makeText(getContext(),"Sending Files",Toast.LENGTH_SHORT).show();
+            }else Toast.makeText(getContext(),"Sending File : "+selectedFiles.get(0),Toast.LENGTH_SHORT).show();
             String ip = null;
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                 ip = Connect.ipToConnect;

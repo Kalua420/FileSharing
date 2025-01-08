@@ -2,9 +2,9 @@
 <menu xmlns:tools="http://schemas.android.com/tools"
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
-    <item android:id="@+id/connect"
+    <item android:id="@+id/logs"
         android:icon="@drawable/connect"
         app:showAsAction="ifRoom"
-        android:title="connect"
+        android:title="@string/logs"
         tools:ignore="HardcodedText" />
 </menu>

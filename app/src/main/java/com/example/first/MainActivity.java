@@ -71,20 +71,4 @@ public class MainActivity extends AppCompatActivity {
         gridView = findViewById(R.id.gridView);
         toolbar = findViewById(R.id.toolbar);
     }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        new MenuInflater(this).inflate(R.menu.option,menu);
-        return super.onCreateOptionsMenu(menu);
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        int itemId = item.getItemId();
-        if (itemId==R.id.connect){
-            Intent i = new Intent(getApplicationContext(),Connect.class);
-            startActivity(i);
-        }
-        return super.onOptionsItemSelected(item);
-    }
 }

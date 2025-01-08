@@ -16,4 +16,6 @@
     <string name="close">Close</string>
     <string name="qr_code">QR Code</string>
     <string name="icon">image</string>
+    <string name="logs">logs</string>
+    <string name="clear_logs">clear logs</string>
 </resources>

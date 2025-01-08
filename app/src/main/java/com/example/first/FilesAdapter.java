@@ -103,8 +103,6 @@ public class FilesAdapter extends RecyclerView.Adapter<FilesAdapter.FileViewHold
             case "xml":
                 holder.fileIcon.setImageResource(R.drawable.coding);
                 break;
-
-            // Default case for unknown file types
             default:
                 holder.fileIcon.setImageResource(R.drawable.icon);
                 break;

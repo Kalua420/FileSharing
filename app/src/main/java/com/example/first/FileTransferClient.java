@@ -8,11 +8,12 @@ import java.io.BufferedInputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.nio.file.Files;
 import java.text.DecimalFormat;
 
+/** @noinspection deprecation*/
 public class FileTransferClient {
     private static final String TAG = "FileTransferClient";
     private static final int BUFFER_SIZE = 65536;
@@ -48,6 +49,7 @@ public class FileTransferClient {
                 }
             }
 
+            @SuppressLint("NewApi")
             @Override
             protected Boolean doInBackground(Void... params) {
                 Socket socket = null;
@@ -66,7 +68,7 @@ public class FileTransferClient {
                     // Connect to server
                     socket = new Socket(serverIp, PORT);
                     dos = new DataOutputStream(socket.getOutputStream());
-                    bis = new BufferedInputStream(new FileInputStream(fileToSend));
+                    bis = new BufferedInputStream(Files.newInputStream(fileToSend.toPath()));
                     dis = new DataInputStream(socket.getInputStream());
 
                     // Send file metadata

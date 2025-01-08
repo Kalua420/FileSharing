@@ -52,7 +52,9 @@ public class Videos extends Fragment {
         gridView.setOnItemLongClickListener((adapterView, view1, i, l) -> {
             String item = videoModels.get(i).getPath();
             MediaHandler mediaHandler = new MediaHandler();
-            mediaHandler.playAudioWithExternalPlayer(requireContext(),Uri.parse(item));
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                mediaHandler.playAudioWithExternalPlayer(requireContext(),Uri.parse(item));
+            }
             return true;
         });
     }

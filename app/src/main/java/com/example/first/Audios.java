@@ -2,6 +2,8 @@ package com.example.first;
 
 import android.annotation.SuppressLint;
 import android.app.Dialog;
+import android.content.ActivityNotFoundException;
+import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
@@ -59,7 +61,9 @@ public class Audios extends Fragment {
         gridView.setOnItemLongClickListener((adapterView, view1, i, l) -> {
             String item = audioFiles.get(i);
             MediaHandler mediaHandler = new MediaHandler();
-            mediaHandler.playAudioWithExternalPlayer(requireContext(),Uri.parse(item));
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                mediaHandler.playAudioWithExternalPlayer(requireContext(),Uri.parse(item));
+            }
             return true;
         });
     }
