@@ -20,7 +20,6 @@ import java.util.Collections;
 
 public class Audios extends Fragment {
     GridView gridView;
-    ArrayList<String> audioList;
     AudioAdapter audioAdapter;
     GetAbsoluteFileName fileName = new GetAbsoluteFileName();
 
@@ -30,7 +29,6 @@ public class Audios extends Fragment {
         View view = inflater.inflate(R.layout.fragment_audios, container, false);
         gridView = view.findViewById(R.id.gridAudio);
         ArrayList<String> audioFiles = fetchAudioFiles();
-        @SuppressLint({"MissingInflatedId", "LocalSuppress"}) TextView txt = view.findViewById(R.id.tmpText);
         audioAdapter = new AudioAdapter(getContext(),audioFiles);
         gridView.setAdapter(audioAdapter);
         return view;
