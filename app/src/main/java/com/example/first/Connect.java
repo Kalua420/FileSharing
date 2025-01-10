@@ -102,8 +102,7 @@ public class Connect extends AppCompatActivity {
 
     private void handleSendClick(WifiManager wifiManager) {
         if (ipToConnect.isEmpty()){
-            if (myServerIP.isEmpty()){
-                if (!isHotspotEnabled(getApplicationContext())){
+            if (!isHotspotEnabled(getApplicationContext())){
                     if (!wifiManager.isWifiEnabled()) {
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                             showWifiSettingsDialog();
@@ -113,7 +112,6 @@ public class Connect extends AppCompatActivity {
                         return;
                     }
                 }
-            }
             if (ipToConnect.isEmpty()) {
                 startScanner();
             } else {
