@@ -99,7 +99,6 @@ public class FileTransferClient {
                                     speed,
                                     "Sending: " + fileToSend.getName()
                             ));
-
                             lastUpdateTime = currentTime;
                             lastBytesSent = totalBytesSent;
                         }

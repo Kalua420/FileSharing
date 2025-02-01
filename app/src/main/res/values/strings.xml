@@ -14,4 +14,7 @@
     <string name="icon">image</string>
     <string name="logs">logs</string>
     <string name="clear_logs">clear logs</string>
+    <string name="pause">Pause</string>
+    <string name="resume">Resume</string>
+    <string name="cancel">Cancel</string>
 </resources>

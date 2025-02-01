@@ -81,7 +81,7 @@ public class FileTransferServer extends Service {
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setContentTitle("File Transfer Service")
                 .setContentText("Service is running")
-                .setSmallIcon(R.drawable.ic_launcher_foreground)
+                .setSmallIcon(android.R.drawable.ic_menu_always_landscape_portrait)
                 .setPriority(NotificationCompat.PRIORITY_LOW)
                 .setOngoing(true);
 

@@ -5,8 +5,8 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.viewpager2.adapter.FragmentStateAdapter;
 
-public class CustomAdaptor extends FragmentStateAdapter {
-    public CustomAdaptor(@NonNull FragmentActivity fragmentActivity) {
+public class TabAdaptor extends FragmentStateAdapter {
+    public TabAdaptor(@NonNull FragmentActivity fragmentActivity) {
         super(fragmentActivity);
     }
 
@@ -27,6 +27,6 @@ public class CustomAdaptor extends FragmentStateAdapter {
 
     @Override
     public int getItemCount() {
-        return 5;
+        return 4;
     }
 }

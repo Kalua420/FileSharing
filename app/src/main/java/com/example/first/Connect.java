@@ -62,10 +62,10 @@ public class Connect extends AppCompatActivity {
     private static String savedLogText = "";
     static String ipToConnect = "";
     static String myServerIP = "";
-    private AppCompatButton stopServer;
     private View rootView;
     private static final int STORAGE_PERMISSION_CODE = 100;
     private static final int MANAGE_EXTERNAL_STORAGE_PERMISSION_REQUEST_CODE = 101;
+    private AppCompatButton stopServer, pauseTransfer, resumeTransfer, cancelTransfer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -395,4 +395,4 @@ public class Connect extends AppCompatActivity {
         }
         return super.onOptionsItemSelected(item);
     }
-}
+    }
