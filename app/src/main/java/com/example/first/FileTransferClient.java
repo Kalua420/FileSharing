@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.util.Log;
+
 import java.io.BufferedInputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -18,12 +19,16 @@ public class FileTransferClient {
     private static final String TAG = "FileTransferClient";
     private static final int BUFFER_SIZE = 65536;
     private static final int PORT = 5000;
+    private DatabaseHelper db = new DatabaseHelper();
 
     @SuppressLint("StaticFieldLeak")
-    public void sendFile(final String serverIp, final String filePath) {
-        new AsyncTask<Void, TransferProgress, Boolean>() {
+    public void sendFile(final String serverIp, final String filePath,
+                         final int userId, final String sender, final String receiver,
+                         final String sourceMac, final String destinationMac) {
+        new AsyncTask<Void, TransferProgress, TransferResult>() {
             private long lastUpdateTime;
             private long lastBytesSent;
+            private String fileName;
 
             @Override
             protected void onPreExecute() {
@@ -51,7 +56,7 @@ public class FileTransferClient {
 
             @SuppressLint("NewApi")
             @Override
-            protected Boolean doInBackground(Void... params) {
+            protected TransferResult doInBackground(Void... params) {
                 Socket socket = null;
                 DataOutputStream dos = null;
                 BufferedInputStream bis = null;
@@ -59,10 +64,12 @@ public class FileTransferClient {
 
                 try {
                     File fileToSend = new File(filePath);
+                    fileName = fileToSend.getName();
+
                     if (!fileToSend.exists()) {
                         Log.e(TAG, "File not found: " + filePath);
                         publishProgress(new TransferProgress(-1, 0, "File not found"));
-                        return false;
+                        return new TransferResult(false, "File not found");
                     }
 
                     // Connect to server
@@ -72,7 +79,7 @@ public class FileTransferClient {
                     dis = new DataInputStream(socket.getInputStream());
 
                     // Send file metadata
-                    dos.writeUTF(fileToSend.getName());
+                    dos.writeUTF(fileName);
                     dos.writeLong(fileToSend.length());
                     dos.flush();
 
@@ -97,9 +104,8 @@ public class FileTransferClient {
                             publishProgress(new TransferProgress(
                                     progress,
                                     speed,
-                                    "Sending: " + fileToSend.getName()
+                                    "Sending: " + fileName
                             ));
-
                             lastUpdateTime = currentTime;
                             lastBytesSent = totalBytesSent;
                         }
@@ -110,12 +116,14 @@ public class FileTransferClient {
                     // Wait for server confirmation
                     String response = dis.readUTF();
                     publishProgress(new TransferProgress(100, 0, response));
-                    return response.contains("successfully");
+
+                    return new TransferResult(response.contains("successfully"), response);
 
                 } catch (IOException e) {
                     Log.e(TAG, "File transfer error", e);
-                    publishProgress(new TransferProgress(-1, 0, "Error: " + e.getMessage()));
-                    return false;
+                    String errorMessage = "Error: " + e.getMessage();
+                    publishProgress(new TransferProgress(-1, 0, errorMessage));
+                    return new TransferResult(false, errorMessage);
                 } finally {
                     // Close all streams
                     try {
@@ -158,7 +166,7 @@ public class FileTransferClient {
             }
 
             @Override
-            protected void onPostExecute(Boolean result) {
+            protected void onPostExecute(TransferResult result) {
                 // Reset speed display
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                     if (Connect.speed != null) {
@@ -169,10 +177,29 @@ public class FileTransferClient {
                 // Update status
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                     if (Connect.textViewContent != null) {
-                        Connect.textViewContent.append(result ?
+                        Connect.textViewContent.append(result.success ?
                                 "File transfer completed successfully\n" :
-                                "File transfer failed\n");
+                                "File transfer failed: " + result.message + "\n");
                     }
+                }
+
+                // Insert log only if transfer was successful
+                String senderMac = MacAddressUtil.getMacAddress();
+                String receiveMac = Connect.serverMac;
+                if (result.success) {
+                    db.insertLog(senderMac, receiveMac, fileName, new DatabaseHelper.DatabaseCallback() {
+                                @Override
+                                public void onResult(boolean success, String message, int userId) {
+                                    if (!success) {
+                                        Log.e(TAG, "Failed to log file transfer: " + message);
+                                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                                            if (Connect.textViewContent != null) {
+                                                Connect.textViewContent.append("Failed to log transfer: " + message + "\n");
+                                            }
+                                        }
+                                    }
+                                }
+                            });
                 }
             }
 
@@ -197,6 +224,16 @@ public class FileTransferClient {
         TransferProgress(int progress, long speed, String message) {
             this.progress = progress;
             this.speed = speed;
+            this.message = message;
+        }
+    }
+
+    private static class TransferResult {
+        final boolean success;
+        final String message;
+
+        TransferResult(boolean success, String message) {
+            this.success = success;
             this.message = message;
         }
     }

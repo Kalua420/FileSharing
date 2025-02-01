@@ -44,7 +44,9 @@ public class Videos extends Fragment {
                 ip = Connect.ipToConnect;
             }
             fileTransferClient = new FileTransferClient();
-            fileTransferClient.sendFile(ip,file);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                fileTransferClient.sendFile(ip,file,1,"","",Connect.serverMac,Connect.myMacAddress);
+            }
             Toast.makeText(getContext(),"Sending : "+fileName.getAbsoluteFileName(file),Toast.LENGTH_SHORT).show();
         });
         gridView.setOnItemLongClickListener((adapterView, view1, i, l) -> {

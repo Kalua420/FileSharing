@@ -225,7 +225,9 @@ public class Files extends Fragment {
     public void sendFiles(String ip, ArrayList<FileModel> files) {
         FileTransferClient fileTransferClient = new FileTransferClient();
         for (FileModel file : files) {
-            fileTransferClient.sendFile(ip, file.getFilePath());
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                fileTransferClient.sendFile(ip,file.getFilePath(),1,"","",Connect.serverMac,Connect.myMacAddress);
+            }
         }
     }
 }

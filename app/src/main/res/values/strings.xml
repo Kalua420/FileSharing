@@ -14,4 +14,18 @@
     <string name="icon">image</string>
     <string name="logs">logs</string>
     <string name="clear_logs">clear logs</string>
+    <string name="pause">Pause</string>
+    <string name="resume">Resume</string>
+    <string name="cancel">Cancel</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="login">Login</string>
+    <string name="new_user_register_here">New user? Register here</string>
+    <string name="register">Register</string>
+    <string name="phone_number">Phone Number</string>
+    <string name="confirm_password">Confirm Password</string>
+    <string name="account_exist">Already have an account? Login</string>
+    <string name="create_account">Don\'t have an account? Register</string>
+    <string name="address">Address</string>
+    <string name="aadhar_number">Aadhar Number</string>
 </resources>

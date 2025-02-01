@@ -48,14 +48,12 @@
         android:theme="@style/Theme.First"
         tools:targetApi="34">
         <activity
-            android:name=".LogsActivity"
-            android:parentActivityName=".Connect"
+            android:name=".RegisterActivity"
             android:exported="false" />
         <activity
-            android:name=".QRCodeActivity"
-            android:parentActivityName=".Connect"
+            android:name=".Connect"
             android:exported="false"
-            android:theme="@style/Theme.AppCompat.NoActionBar" />
+            android:parentActivityName=".LoginActivity" />
         <activity
             android:name=".CaptureActivityPortrait"
             android:screenOrientation="portrait"
@@ -64,13 +62,12 @@
             android:windowSoftInputMode="stateAlwaysHidden" />
         <activity
             android:name=".MainActivity"
-            android:parentActivityName=".Connect"
-            android:exported="true">
-
-        </activity>
+            android:exported="true"
+            android:parentActivityName=".LoginActivity" />
         <activity
-            android:name=".Connect"
-            android:exported="true">
+            android:name=".LoginActivity"
+            android:exported="true"
+            tools:ignore="DuplicateActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
