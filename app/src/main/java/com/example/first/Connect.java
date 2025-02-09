@@ -17,7 +17,6 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.IBinder;
 import android.provider.Settings;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -63,14 +62,10 @@ public class Connect extends AppCompatActivity {
     private static String savedLogText = "";
     static String ipToConnect = "";
     static String myServerIP = "";
-    static String serverMac = "";
-    public static String myMacAddress = "";
     private View rootView;
     private static final int STORAGE_PERMISSION_CODE = 100;
     private static final int MANAGE_EXTERNAL_STORAGE_PERMISSION_REQUEST_CODE = 101;
     private AppCompatButton stopServer, pauseTransfer, resumeTransfer, cancelTransfer;
-    public static int myUserId;
-    public static int targetUserId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -78,8 +73,6 @@ public class Connect extends AppCompatActivity {
         setContentView(R.layout.activity_connect);
         rootView = findViewById(android.R.id.content);
         init();
-        myUserId = getIntent().getIntExtra("userId", -1);
-        Log.d("userId", String.valueOf(myUserId));
         checkAndRequestPermissions();
         setSupportActionBar(toolbar);
         Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(false);
@@ -88,6 +81,7 @@ public class Connect extends AppCompatActivity {
         if (!savedLogText.isEmpty() && textViewContent != null) {
             textViewContent.setText(savedLogText);
         }
+
         setupClickListeners();
     }
 
@@ -144,6 +138,7 @@ public class Connect extends AppCompatActivity {
         if (fileTransferService == null) {
             Intent intent = new Intent(this, FileTransferServer.class);
             startService(intent);
+
             if (!isBound) {
                 bindService(intent, connection, Context.BIND_AUTO_CREATE);
             }
@@ -151,12 +146,8 @@ public class Connect extends AppCompatActivity {
             return;
         }
         if (!myServerIP.isEmpty()) {
-            if (myMacAddress.isEmpty()){
-                myMacAddress = MacAddressUtil.getMacAddress();
-            }
-            String ServerIpAndMac = myUserId+"/"+myServerIP + "/" + myMacAddress;
-            showSnackbar(ServerIpAndMac);
-            generateQRCode(ServerIpAndMac);
+            showSnackbar("Server IP: " + myServerIP);
+            generateQRCode(myServerIP);
         } else {
             showSnackbar("Failed to get server IP. Please try again.");
             stopService(new Intent(this, FileTransferServer.class));
@@ -175,20 +166,17 @@ public class Connect extends AppCompatActivity {
     }
 
     private void handleStopServerClick() {
-//        if (fileTransferService != null) {
-//            stopService(new Intent(this, FileTransferServer.class));
-//            if (isBound) {
-//                unbindService(connection);
-//                isBound = false;
-//            }
-//            fileTransferService = null;
-//            showSnackbar("Server stopped");
-//        } else {
-//            showSnackbar("Server is not running");
-//        }
-        MyServerIP getInfo = new MyServerIP();
-        ipToConnect = getInfo.getMacAddress(this);
-        Toast.makeText(getApplicationContext(), ipToConnect, Toast.LENGTH_SHORT).show();
+        if (fileTransferService != null) {
+            stopService(new Intent(this, FileTransferServer.class));
+            if (isBound) {
+                unbindService(connection);
+                isBound = false;
+            }
+            fileTransferService = null;
+            showSnackbar("Server stopped");
+        } else {
+            showSnackbar("Server is not running");
+        }
     }
 
     private void showSnackbar(String message) {
@@ -362,13 +350,8 @@ public class Connect extends AppCompatActivity {
             new ScanContract(),
             result -> {
                 if (result.getContents() != null) {
-                    String scanResult = result.getContents();
-                    ipToConnect = scanResult;
-                    String[] parts = scanResult.split("/");
-                    targetUserId = Integer.parseInt(parts[0]);
-                    ipToConnect = parts[1];
-                    if (serverMac.isEmpty())serverMac = parts[2];
-                    showSnackbar("Connected to: " + ipToConnect+" "+serverMac);
+                    ipToConnect = result.getContents();
+                    showSnackbar("Connected to: " + ipToConnect);
                     Intent i = new Intent(getApplicationContext(), MainActivity.class);
                     startActivity(i);
                 }
@@ -407,7 +390,8 @@ public class Connect extends AppCompatActivity {
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         int itemId = item.getItemId();
         if (itemId==R.id.logs){
-            Toast.makeText(getApplicationContext(), "Logs", Toast.LENGTH_SHORT).show();
+            Intent i = new Intent(getApplicationContext(),LogsActivity.class);
+            startActivity(i);
         }
         return super.onOptionsItemSelected(item);
     }
