@@ -103,10 +103,10 @@ public class Connect extends AppCompatActivity {
             }
         });
         receive.setOnClickListener(v -> handleReceiveClick(wifiManager));
-        stopServer.setOnClickListener(v -> handleStopServerClick());
     }
 
     private void handleSendClick(WifiManager wifiManager) {
+        myMacAddress = MacAddressUtil.getMacAddress();
         if (ipToConnect.isEmpty()){
             if (!isHotspotEnabled(getApplicationContext())){
                     if (!wifiManager.isWifiEnabled()) {
@@ -134,6 +134,9 @@ public class Connect extends AppCompatActivity {
 
     private void handleReceiveClick(WifiManager wifiManager) {
         myServerIP = ServerIP.getIp();
+        if (myMacAddress.isEmpty()){
+            myMacAddress = MacAddressUtil.getMacAddress();
+        }
         if (!wifiManager.isWifiEnabled()){
             if (!isHotspotEnabled(getApplicationContext())) {
                 Toast.makeText(getApplicationContext(), "Please enable Hotspot", Toast.LENGTH_SHORT).show();
@@ -150,10 +153,7 @@ public class Connect extends AppCompatActivity {
             showSnackbar("Starting file transfer server...");
             return;
         }
-        if (!myServerIP.isEmpty()) {
-            if (myMacAddress.isEmpty()){
-                myMacAddress = MacAddressUtil.getMacAddress();
-            }
+        if (!myServerIP.isEmpty() && !myMacAddress.isEmpty()) {
             String ServerIpAndMac = myUserId+"/"+myServerIP + "/" + myMacAddress;
             showSnackbar(ServerIpAndMac);
             generateQRCode(ServerIpAndMac);
@@ -172,23 +172,6 @@ public class Connect extends AppCompatActivity {
         } catch (RuntimeException e) {
             throw new RuntimeException(e);
         }
-    }
-
-    private void handleStopServerClick() {
-//        if (fileTransferService != null) {
-//            stopService(new Intent(this, FileTransferServer.class));
-//            if (isBound) {
-//                unbindService(connection);
-//                isBound = false;
-//            }
-//            fileTransferService = null;
-//            showSnackbar("Server stopped");
-//        } else {
-//            showSnackbar("Server is not running");
-//        }
-        MyServerIP getInfo = new MyServerIP();
-        ipToConnect = getInfo.getMacAddress(this);
-        Toast.makeText(getApplicationContext(), ipToConnect, Toast.LENGTH_SHORT).show();
     }
 
     private void showSnackbar(String message) {
@@ -269,7 +252,6 @@ public class Connect extends AppCompatActivity {
         textViewContent = findViewById(R.id.textViewContent);
         progressBar = findViewById(R.id.progressBar);
         speed = findViewById(R.id.transferSpeed);
-        stopServer = findViewById(R.id.stopServer);
         clientConnected = findViewById(R.id.clientConnected);
         // Initialize progress bar
         if (progressBar != null) {

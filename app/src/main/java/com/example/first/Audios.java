@@ -43,7 +43,7 @@ public class Audios extends Fragment {
             }
             fileTransferClient = new FileTransferClient();
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                fileTransferClient.sendFile(ip,item,1,"","",Connect.serverMac,Connect.myMacAddress);
+                fileTransferClient.sendFile(ip,item,1,"","",Connect.serverMac);
             }
             Toast.makeText(getContext(),"Sending : "+fileName.getAbsoluteFileName(item),Toast.LENGTH_SHORT).show();
         });

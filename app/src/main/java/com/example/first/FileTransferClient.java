@@ -20,11 +20,15 @@ public class FileTransferClient {
     private static final int BUFFER_SIZE = 65536;
     private static final int PORT = 5000;
     private DatabaseHelper db = new DatabaseHelper();
+    private static String senderMac = "";
 
     @SuppressLint("StaticFieldLeak")
     public void sendFile(final String serverIp, final String filePath,
                          final int userId, final String sender, final String receiver,
-                         final String sourceMac, final String destinationMac) {
+                         final String destinationMac) {
+        if (Connect.myMacAddress.isEmpty()) {
+            senderMac = MacAddressUtil.getMacAddress();
+        }else senderMac = Connect.myMacAddress;
         new AsyncTask<Void, TransferProgress, TransferResult>() {
             private long lastUpdateTime;
             private long lastBytesSent;
@@ -184,7 +188,6 @@ public class FileTransferClient {
                 }
 
                 // Insert log only if transfer was successful
-                String senderMac = MacAddressUtil.getMacAddress();
                 String receiveMac = Connect.serverMac;
                 if (result.success) {
                     db.insertLog(senderMac, receiveMac, fileName, new DatabaseHelper.DatabaseCallback() {

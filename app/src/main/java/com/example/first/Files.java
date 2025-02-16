@@ -226,7 +226,7 @@ public class Files extends Fragment {
         FileTransferClient fileTransferClient = new FileTransferClient();
         for (FileModel file : files) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                fileTransferClient.sendFile(ip,file.getFilePath(),1,"","",Connect.serverMac,Connect.myMacAddress);
+                fileTransferClient.sendFile(ip,file.getFilePath(),1,"","",Connect.serverMac);
             }
         }
     }

@@ -32,13 +32,6 @@
         </androidx.appcompat.widget.Toolbar>
     </com.google.android.material.appbar.AppBarLayout>
 
-    <androidx.appcompat.widget.AppCompatButton
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/stop"
-        android:textAllCaps="true"
-        android:id="@+id/stopServer"/>
-
     <TextView
         android:id="@+id/clientConnected"
         android:layout_width="match_parent"
