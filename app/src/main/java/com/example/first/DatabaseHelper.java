@@ -24,7 +24,7 @@ public class DatabaseHelper {
     private static final String DB_NAME = "project";
     private static final String DB_USER = "root";
     private static final String DB_PASS = "root";
-    private static final String DB_IP = "192.168.75.137";
+    private static final String DB_IP = "192.168.224.137";
     private static final int DB_PORT = 3306;
     private static final int TIMEOUT = 5000;
 
@@ -35,6 +35,10 @@ public class DatabaseHelper {
     public interface BranchCallback {
         void onBranchResult(boolean success, ArrayList<String> branches, String message);
     }
+    public interface LogsCallback {
+        void onLogsResult(boolean success, ArrayList<LogEntry> logs, String message);
+    }
+
 
     // Hashing Method for Password
     private String hashPassword(String password) {
@@ -121,7 +125,7 @@ public class DatabaseHelper {
                                 result.setUserId(rs.getInt("id"));
                             } else {
                                 result.setSuccess(false);
-                                result.setMessage("Account pending approval");
+                                result.setMessage("Account approval pending");
                                 result.setUserId(-1);
                             }
                         } else {
@@ -239,7 +243,8 @@ public class DatabaseHelper {
 
     @SuppressLint("StaticFieldLeak")
     public void insertLog(final String sourceMac, final String destinationMac,
-                          final String filename, final DatabaseCallback callback) {
+                          final String filename, final long fileSize,
+                          final DatabaseCallback callback) {
         int sender_id = -1;
         int receiver_id = -1;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
@@ -248,19 +253,21 @@ public class DatabaseHelper {
         }
         int finalSender_id = sender_id;
         int finalReceiver_id = receiver_id;
+
         new AsyncTask<Void, Void, ConnectionResult>() {
             @Override
             protected ConnectionResult doInBackground(Void... voids) {
                 ConnectionResult result = new ConnectionResult();
                 try (Connection conn = getConnection();
                      PreparedStatement pstmt = conn.prepareStatement(
-                             "INSERT INTO logs (sender_id, receiver_id, source_mac, destination_mac, filename) VALUES (?, ?, ?, ?, ?)")) {
+                             "INSERT INTO logs (sender_id, receiver_id, source_mac, destination_mac, filename, file_size) VALUES (?, ?, ?, ?, ?, ?)")) {
 
                     pstmt.setInt(1, finalSender_id);
                     pstmt.setInt(2, finalReceiver_id);
                     pstmt.setString(3, sourceMac);
                     pstmt.setString(4, destinationMac);
                     pstmt.setString(5, filename);
+                    pstmt.setLong(6, fileSize);
 
                     int rowsAffected = pstmt.executeUpdate();
                     result.setSuccess(rowsAffected > 0);
@@ -280,23 +287,85 @@ public class DatabaseHelper {
         }.execute();
     }
 
+    @SuppressLint("StaticFieldLeak")
+    public void fetchLogsByUserId(final int userId, final LogsCallback callback) {
+        new AsyncTask<Void, Void, ConnectionResult>() {
+            @Override
+            protected ConnectionResult doInBackground(Void... voids) {
+                ConnectionResult result = new ConnectionResult();
+                ArrayList<LogEntry> logs = new ArrayList<>();
+
+                try (Connection conn = getConnection();
+                     PreparedStatement stmt = conn.prepareStatement(
+                             "SELECT * FROM logs WHERE sender_id = ? OR receiver_id = ? ORDER BY timestamp DESC")) {
+
+                    stmt.setInt(1, userId);
+                    stmt.setInt(2, userId);
+
+                    try (ResultSet rs = stmt.executeQuery()) {
+                        while (rs.next()) {
+                            LogEntry log = new LogEntry();
+                            log.setLogId(rs.getInt("log_id"));
+                            log.setSenderId(rs.getInt("sender_id"));
+                            log.setReceiverId(rs.getInt("receiver_id"));
+                            log.setSourceMac(rs.getString("source_mac"));
+                            log.setDestinationMac(rs.getString("destination_mac"));
+                            log.setFilename(rs.getString("filename"));
+                            log.setTimestamp(rs.getTimestamp("timestamp"));
+                            log.setFileSize(rs.getInt("file_size")); // 👈 Fetch filesize here
+
+                            logs.add(log);
+                        }
+                    }
+
+                    result.setSuccess(true);
+                    result.setLogsEntries(logs);
+                    result.setMessage("Fetched " + logs.size() + " logs");
+
+                } catch (Exception e) {
+                    result.setSuccess(false);
+                    result.setMessage("Error fetching logs: " + e.getMessage());
+                    Log.e(TAG, "Logs fetch error", e);
+                }
+
+                return result;
+            }
+
+            @Override
+            protected void onPostExecute(ConnectionResult result) {
+                callback.onLogsResult(
+                        result.isSuccess(),
+                        result.getLogsEntries(),
+                        result.getMessage()
+                );
+            }
+        }.execute();
+    }
+
     // Internal Result Handling Class
     static class ConnectionResult {
         private boolean success;
         private String message;
         private int userId;
         private ArrayList<String> branchNames;
+        private ArrayList<LogEntry> logsEntries;
+
         public void setBranchNames(ArrayList<String> branchNames) { this.branchNames = branchNames; }
         public ArrayList<String> getBranchNames() { return branchNames; }
+
+        public void setLogsEntries(ArrayList<LogEntry> logsEntries) { this.logsEntries = logsEntries; }
+        public ArrayList<LogEntry> getLogsEntries() { return logsEntries != null ? logsEntries : new ArrayList<>(); }
 
         public void setSuccess(boolean success) { this.success = success; }
         public boolean isSuccess() { return success; }
 
         public void setMessage(String message) { this.message = message; }
         public String getMessage() { return message; }
+
         public void setUserId(int userId) { this.userId = userId; }
         public int getUserId() { return userId; }
     }
+
     @SuppressLint("StaticFieldLeak")
     public void fetchBranches(final BranchCallback callback) {
         new AsyncTask<Void, Void, ConnectionResult>() {

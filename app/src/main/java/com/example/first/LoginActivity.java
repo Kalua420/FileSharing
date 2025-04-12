@@ -9,6 +9,7 @@ import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import androidx.appcompat.app.AppCompatActivity;
 
 public class LoginActivity extends AppCompatActivity {
@@ -16,10 +17,22 @@ public class LoginActivity extends AppCompatActivity {
     private Button btnLogin;
     private ProgressBar progressBar;
     private DatabaseHelper dbHelper;
+    private SessionManager sessionManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // Initialize session manager
+        sessionManager = new SessionManager(this);
+
+        // Check if user is already logged in
+        if (sessionManager.isLoggedIn()) {
+            // User is already logged in, redirect to Connect activity
+            navigateToConnectActivity();
+            return;  // Important: prevent the rest of onCreate from executing
+        }
+
         setContentView(R.layout.activity_login);
 
         // Initialize views
@@ -34,11 +47,18 @@ public class LoginActivity extends AppCompatActivity {
         // Login button click listener
         btnLogin.setOnClickListener(v -> validateAndLogin());
 
-        // Register text click listener
+        // Register text click listener (Navigates to RegisterActivity)
         txtRegister.setOnClickListener(v -> {
             Intent intent = new Intent(LoginActivity.this, RegisterActivity.class);
             startActivity(intent);
         });
+    }
+
+    private void navigateToConnectActivity() {
+        Intent intent = new Intent(LoginActivity.this, Connect.class);
+        intent.putExtra("userId", sessionManager.getUserId());
+        startActivity(intent);
+        finish();  // Close the login activity
     }
 
     private void validateAndLogin() {
@@ -58,24 +78,24 @@ public class LoginActivity extends AppCompatActivity {
             return;
         }
 
-        // Show progress
+        // Show progress bar and disable login button
         progressBar.setVisibility(View.VISIBLE);
         btnLogin.setEnabled(false);
 
         // Perform login
         dbHelper.loginUser(email, password, (success, message, userId) -> {
-            // Hide progress
+            // Hide progress bar and enable login button
             runOnUiThread(() -> {
                 progressBar.setVisibility(View.GONE);
                 btnLogin.setEnabled(true);
 
                 // Handle login result
                 if (success) {
+                    // Save user session using SessionManager
+                    sessionManager.createLoginSession(userId, email);
+
                     Toast.makeText(LoginActivity.this, message, Toast.LENGTH_SHORT).show();
-                    Intent intent = new Intent(LoginActivity.this, Connect.class);
-                    intent.putExtra("userId", userId);  // Pass userId to Connect activity
-                    startActivity(intent);
-                    finish();
+                    navigateToConnectActivity();
                 } else {
                     Toast.makeText(LoginActivity.this, message, Toast.LENGTH_LONG).show();
                 }

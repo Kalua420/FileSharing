@@ -48,6 +48,10 @@
         android:theme="@style/Theme.First"
         tools:targetApi="34">
         <activity
+            android:name=".LogsActivity"
+            android:exported="false"
+            android:theme="@style/Theme.First" />
+        <activity
             android:name=".RegisterActivity"
             android:exported="false" />
         <activity

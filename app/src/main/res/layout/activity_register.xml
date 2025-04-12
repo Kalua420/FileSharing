@@ -4,79 +4,118 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:gravity="center"
-    android:padding="16dp">
+    android:padding="16dp"
+    android:background="@android:color/black">
 
+    <!-- Email EditText -->
     <EditText
         android:id="@+id/editTextEmail"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="@string/email"
         android:inputType="textEmailAddress"
-        android:autofillHints=""/>
+        android:padding="12dp"
+        android:background="@drawable/edit_text_background"
+        android:layout_marginBottom="16dp"
+        android:textColorHint="@android:color/darker_gray" />
 
+    <!-- Phone Number EditText -->
     <EditText
         android:id="@+id/editTextPhone"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="@string/phone_number"
         android:inputType="phone"
-        android:autofillHints=""/>
+        android:padding="12dp"
+        android:background="@drawable/edit_text_background"
+        android:layout_marginBottom="16dp"
+        android:textColorHint="@android:color/darker_gray" />
+
+    <!-- Aadhar Number EditText -->
     <EditText
         android:id="@+id/editTextAadharNumber"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="@string/aadhar_number"
         android:inputType="phone"
-        android:autofillHints=""/>
+        android:padding="12dp"
+        android:background="@drawable/edit_text_background"
+        android:layout_marginBottom="16dp"
+        android:textColorHint="@android:color/darker_gray" />
+
+    <!-- Address EditText -->
     <EditText
         android:id="@+id/editTextAddress"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="@string/address"
         android:inputType="text"
-        android:autofillHints=""/>
+        android:padding="12dp"
+        android:background="@drawable/edit_text_background"
+        android:layout_marginBottom="16dp"
+        android:textColorHint="@android:color/darker_gray" />
 
+    <!-- Branch Spinner with Custom Appearance -->
     <Spinner
         android:id="@+id/spinnerBranch"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:layout_marginBottom="8dp"/>
+        android:layout_marginBottom="16dp"
+        android:background="@drawable/spinner_background"
+        android:popupBackground="@drawable/spinner_dropdown"
+        android:padding="12dp" />
 
+    <!-- Password EditText -->
     <EditText
         android:id="@+id/editTextPassword"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="@string/password"
         android:inputType="textPassword"
-        android:autofillHints=""/>
+        android:padding="12dp"
+        android:background="@drawable/edit_text_background"
+        android:layout_marginBottom="16dp"
+        android:textColorHint="@android:color/darker_gray" />
 
+    <!-- Confirm Password EditText -->
     <EditText
         android:id="@+id/editTextConfirmPassword"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="@string/confirm_password"
         android:inputType="textPassword"
-        android:autofillHints=""/>
+        android:padding="12dp"
+        android:background="@drawable/edit_text_background"
+        android:layout_marginBottom="16dp"
+        android:textColorHint="@android:color/darker_gray" />
 
+    <!-- ProgressBar -->
     <ProgressBar
         android:id="@+id/progressBar"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:visibility="gone"/>
+        android:visibility="gone" />
 
+    <!-- Register Button -->
     <Button
         android:id="@+id/btnRegister"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/register"/>
+        android:text="@string/register"
+        android:textColor="#FFFFFF"
+        android:backgroundTint="?attr/colorPrimary"
+        android:layout_marginBottom="16dp" />
 
+    <!-- Already have an account? Link -->
     <TextView
         android:id="@+id/txtLogin"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/account_exist"
+        android:textColor="?attr/colorPrimary"
         android:layout_gravity="center"
-        android:layout_marginTop="16dp"/>
+        android:layout_marginTop="16dp"
+        android:textStyle="bold" />
+
 </LinearLayout>

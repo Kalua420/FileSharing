@@ -21,6 +21,7 @@ public class FileTransferClient {
     private static final int PORT = 5000;
     private DatabaseHelper db = new DatabaseHelper();
     private static String senderMac = "";
+    private static long fileSize;
 
     @SuppressLint("StaticFieldLeak")
     public void sendFile(final String serverIp, final String filePath,
@@ -91,7 +92,7 @@ public class FileTransferClient {
                     byte[] buffer = new byte[BUFFER_SIZE];
                     int bytesRead;
                     long totalBytesSent = 0;
-                    long fileSize = fileToSend.length();
+                    fileSize = fileToSend.length();
 
                     while ((bytesRead = bis.read(buffer)) != -1) {
                         dos.write(buffer, 0, bytesRead);
@@ -190,7 +191,7 @@ public class FileTransferClient {
                 // Insert log only if transfer was successful
                 String receiveMac = Connect.serverMac;
                 if (result.success) {
-                    db.insertLog(senderMac, receiveMac, fileName, new DatabaseHelper.DatabaseCallback() {
+                    db.insertLog(senderMac, receiveMac, fileName, fileSize, new DatabaseHelper.DatabaseCallback() {
                                 @Override
                                 public void onResult(boolean success, String message, int userId) {
                                     if (!success) {

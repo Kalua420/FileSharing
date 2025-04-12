@@ -71,6 +71,7 @@ public class Connect extends AppCompatActivity {
     private AppCompatButton stopServer, pauseTransfer, resumeTransfer, cancelTransfer;
     public static int myUserId;
     public static int targetUserId;
+    private SessionManager sessionManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -78,6 +79,18 @@ public class Connect extends AppCompatActivity {
         setContentView(R.layout.activity_connect);
         rootView = findViewById(android.R.id.content);
         init();
+        // Initialize SessionManager
+        sessionManager = new SessionManager(this);
+
+        // Check if user is logged in
+        if (!sessionManager.isLoggedIn()) {
+            // User is not logged in, redirect to login
+            sessionManager.logout();
+            return;
+        }
+        int userId = sessionManager.getUserId();
+        String userEmail = sessionManager.getUserEmail();
+
         myUserId = getIntent().getIntExtra("userId", -1);
         Log.d("userId", String.valueOf(myUserId));
         checkAndRequestPermissions();
@@ -102,7 +115,9 @@ public class Connect extends AppCompatActivity {
                 startActivity(i);
             }
         });
-        receive.setOnClickListener(v -> handleReceiveClick(wifiManager));
+        receive.setOnClickListener(v -> {
+            handleReceiveClick(wifiManager);
+        });
     }
 
     private void handleSendClick(WifiManager wifiManager) {
@@ -133,17 +148,26 @@ public class Connect extends AppCompatActivity {
     }
 
     private void handleReceiveClick(WifiManager wifiManager) {
+        // First, ensure we have both IP and MAC address
         myServerIP = ServerIP.getIp();
-        if (myMacAddress.isEmpty()){
-            myMacAddress = MacAddressUtil.getMacAddress();
+        myMacAddress = MacAddressUtil.getMacAddress();
+
+        // Check if we have valid values for both
+        if (myServerIP.isEmpty() || myMacAddress.isEmpty()) {
+            showSnackbar("Failed to get server information. Please try again.");
+            return;
         }
-        if (!wifiManager.isWifiEnabled()){
+
+        // Check WiFi or hotspot state
+        if (!wifiManager.isWifiEnabled()) {
             if (!isHotspotEnabled(getApplicationContext())) {
                 Toast.makeText(getApplicationContext(), "Please enable Hotspot", Toast.LENGTH_SHORT).show();
                 enableHotspot();
                 return;
             }
         }
+
+        // Start the service if not already started
         if (fileTransferService == null) {
             Intent intent = new Intent(this, FileTransferServer.class);
             startService(intent);
@@ -151,21 +175,16 @@ public class Connect extends AppCompatActivity {
                 bindService(intent, connection, Context.BIND_AUTO_CREATE);
             }
             showSnackbar("Starting file transfer server...");
+
+            // Now we wait for the service connection callback to complete before generating QR
             return;
         }
-        if (!myServerIP.isEmpty() && !myMacAddress.isEmpty()) {
-            String ServerIpAndMac = myUserId+"/"+myServerIP + "/" + myMacAddress;
-            showSnackbar(ServerIpAndMac);
-            generateQRCode(ServerIpAndMac);
-        } else {
-            showSnackbar("Failed to get server IP. Please try again.");
-            stopService(new Intent(this, FileTransferServer.class));
-            if (isBound) {
-                unbindService(connection);
-                isBound = false;
-            }
-            fileTransferService = null;
-        }
+
+        // Only generate QR code if we have all information available
+        String ServerIpAndMac = myUserId + "/" + myServerIP + "/" + myMacAddress;
+        showSnackbar(ServerIpAndMac);
+        generateQRCode(ServerIpAndMac);
+
         try {
             assert fileTransferService != null;
             ipToConnect = fileTransferService.clientIp;
@@ -287,9 +306,10 @@ public class Connect extends AppCompatActivity {
             isBound = true;
             showSnackbar("Server connected");
 
-            // Generate QR code automatically when service is connected
-            if (!myServerIP.isEmpty()) {
-                generateQRCode(myServerIP);
+            // Generate QR code with both IP and MAC when service is connected
+            if (!myServerIP.isEmpty() && !myMacAddress.isEmpty()) {
+                String ServerIpAndMac = myUserId + "/" + myServerIP + "/" + myMacAddress;
+                generateQRCode(ServerIpAndMac);
             }
         }
 
@@ -390,7 +410,16 @@ public class Connect extends AppCompatActivity {
         int itemId = item.getItemId();
         if (itemId==R.id.logs){
             Toast.makeText(getApplicationContext(), "Logs", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(getApplicationContext(),LogsActivity.class);
+            intent.putExtra("userId",myUserId);
+            startActivity(intent);
+        }if (item.getItemId() == R.id.menu_logout) { // Add this item in your menu XML
+            logout();
+            return true;
         }
         return super.onOptionsItemSelected(item);
     }
+    private void logout() {
+        sessionManager.logout(); // This will clear session and redirect to login
     }
+}

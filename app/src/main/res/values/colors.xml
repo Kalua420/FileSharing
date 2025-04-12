@@ -3,4 +3,5 @@
     <color name="black">#FF000000</color>
     <color name="green">#8BC34A</color>
     <color name="red">#F44336</color>
+    <color name="custom_hint_color">#B0B0B0</color>
 </resources>

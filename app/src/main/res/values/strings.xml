@@ -5,14 +5,14 @@
     <string name="images">Images</string>
     <string name="files">Files</string>
     <string name="audios">Audios</string>
-    <string name="filename">filename</string>
-    <string name="send">send</string>
-    <string name="receive">receive</string>
-    <string name="stop">stop</string>
+    <string name="filename">Filename</string>
+    <string name="send">Send</string>
+    <string name="receive">Receive</string>
+    <string name="stop">Stop</string>
     <string name="close">Close</string>
     <string name="qr_code">QR Code</string>
-    <string name="icon">image</string>
-    <string name="logs">logs</string>
+    <string name="icon">Image</string>
+    <string name="logs">Logs</string>
     <string name="clear_logs">clear logs</string>
     <string name="pause">Pause</string>
     <string name="resume">Resume</string>
@@ -28,4 +28,11 @@
     <string name="create_account">Don\'t have an account? Register</string>
     <string name="address">Address</string>
     <string name="aadhar_number">Aadhar Number</string>
+    <!-- Strings used for fragments for navigation -->
+    <string name="first_fragment_label">First Fragment</string>
+    <string name="second_fragment_label">Second Fragment</string>
+    <string name="next">Next</string>
+    <string name="previous">Previous</string>
+    <string name="logout">Logout</string>
+    <string name="lorem_ipsum">Dustbin</string>
 </resources>

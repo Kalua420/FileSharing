@@ -1,7 +1,5 @@
 package com.example.first;
 
-import android.view.View;
-
 import java.net.NetworkInterface;
 import java.util.Collections;
 import java.util.List;
@@ -12,49 +10,6 @@ public class MacAddressUtil {
             "wlan0",     // WiFi interface
             "eth0",      // Ethernet interface
             "dummy0"     // Fallback interface
-    };
-
-    @SuppressWarnings("deprecation")
-    public static String getMacAddress() {
-        String macAddress = null;
-
-        // Try Android 6.0 and above method first
-        try {
-            List<NetworkInterface> networkInterfaces = Collections.list(NetworkInterface.getNetworkInterfaces());
-
-            // Try each known interface
-            for (String interfaceName : MAC_ADDRESS_INTERFACES) {
-                for (NetworkInterface networkInterface : networkInterfaces) {
-                    if (interfaceName.equals(networkInterface.getName())) {
-                        byte[] hardwareAddress = networkInterface.getHardwareAddress();
-                        if (hardwareAddress != null) {
-                            StringBuilder builder = new StringBuilder();
-                            for (byte b : hardwareAddress) {
-                                builder.append(String.format("%02X:", b));
-                            }
-                            if (builder.length() > 0) {
-                                builder.deleteCharAt(builder.length() - 1);
-                            }
-                            macAddress = builder.toString();
-                            break;
-                        }
-                    }
-                }
-                if (macAddress != null) {
-                    break;
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return macAddress != null ? macAddress : MacAddressGenerator.generateRandomMac(); // Return default if nothing found
-    }
-}
-class MacAddressGenerator {
-    private static final String[] VALID_HEX = {
-            "0", "1", "2", "3", "4", "5", "6", "7",
-            "8", "9", "A", "B", "C", "D", "E", "F"
     };
 
     // Common Android device manufacturer prefixes
@@ -82,7 +37,52 @@ class MacAddressGenerator {
             "B4:A5:AC"
     };
 
-    public static String generateRandomMac() {
+    private static final String[] VALID_HEX = {
+            "0", "1", "2", "3", "4", "5", "6", "7",
+            "8", "9", "A", "B", "C", "D", "E", "F"
+    };
+
+    public static String getMacAddress() {
+        String macAddress = getRealMacAddress();
+
+        // If real MAC address couldn't be fetched, return a random one
+        if (macAddress == null || macAddress.isEmpty()) {
+            macAddress = generateRandomMac();
+        }
+
+        return macAddress;
+    }
+
+    private static String getRealMacAddress() {
+        try {
+            List<NetworkInterface> networkInterfaces = Collections.list(NetworkInterface.getNetworkInterfaces());
+
+            // Try each known interface
+            for (String interfaceName : MAC_ADDRESS_INTERFACES) {
+                for (NetworkInterface networkInterface : networkInterfaces) {
+                    if (interfaceName.equals(networkInterface.getName())) {
+                        byte[] hardwareAddress = networkInterface.getHardwareAddress();
+                        if (hardwareAddress != null) {
+                            StringBuilder builder = new StringBuilder();
+                            for (byte b : hardwareAddress) {
+                                builder.append(String.format("%02X:", b));
+                            }
+                            if (builder.length() > 0) {
+                                builder.deleteCharAt(builder.length() - 1);
+                            }
+                            return builder.toString();
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return null;  // Couldn't get a real MAC address
+    }
+
+    private static String generateRandomMac() {
         StringBuilder mac = new StringBuilder();
 
         // Use a random manufacturer prefix
@@ -96,6 +96,7 @@ class MacAddressGenerator {
 
         return mac.toString();
     }
+
     private static String generateRandomOctet() {
         Random random = new Random();
         StringBuilder octet = new StringBuilder();

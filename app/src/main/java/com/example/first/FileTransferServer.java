@@ -21,7 +21,6 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
-/** @noinspection CallToPrintStackTrace*/
 public class FileTransferServer extends Service {
     private static final String TAG = "FileTransferServer";
     private static final int PORT = 5000;
@@ -34,6 +33,7 @@ public class FileTransferServer extends Service {
     private final IBinder binder = new LocalBinder();
     private static final String FileDir = "/storage/emulated/0/";
     private static final String FILE_NAME = "/storage/emulated/0/ShareGT/";
+    private static final int BufferSize = 65536;
 
     public class LocalBinder extends Binder {
         FileTransferServer getService() {
@@ -161,17 +161,6 @@ public class FileTransferServer extends Service {
         }
     }
 
-    private void updateLogs(final String message) {
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss a", Locale.getDefault());
-        String timestamp = dateFormat.format(new Date());
-        String logMessage = "[ "+timestamp+" ]\n" + message;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            if (Connect.textViewContent != null) {
-                runOnUiThread(() -> createAndWriteFile(logMessage+"\n"));
-            }
-        }
-    }
-
     private void clientConnected(final String clientIp){
         if (Build.VERSION.SDK_INT>=Build.VERSION_CODES.Q){
             if (Connect.clientConnected!=null){
@@ -237,7 +226,7 @@ public class FileTransferServer extends Service {
                 FileOutputStream fos = new FileOutputStream(outputFile);
                 BufferedOutputStream bos = new BufferedOutputStream(fos);
 
-                byte[] buffer = new byte[4096];
+                byte[] buffer = new byte[BufferSize];
                 int bytesRead;
                 long totalBytesRead = 0;
                 long lastSpeedUpdateTime = System.currentTimeMillis();
@@ -269,7 +258,6 @@ public class FileTransferServer extends Service {
                 fos.close();
 
                 updateUI("File received: " + fileName);
-                updateLogs("File Received : "+fileName+"\nLocation : "+FILE_NAME+fileName);
                 updateProgress(100);
                 updateSpeed(0);
 
@@ -294,27 +282,4 @@ public class FileTransferServer extends Service {
             Log.d("FileTransferServer", "Directory already exists: " + directory.getAbsolutePath());
         }
     }
-
-    private void createAndWriteFile(String content) {
-        try {
-            File file = new File(FILE_NAME, ".logs.txt");
-            if (!file.exists()) {
-                boolean created = file.createNewFile();
-                if (created) {
-                    // Write content to the file
-                    FileWriter writer = new FileWriter(file);
-                    writer.write(content);
-                    writer.close();
-                }
-            } else {
-                // If file exists, append new content
-                FileWriter writer = new FileWriter(file, true); // true for append mode
-                writer.write("\n" + content);
-                writer.close();
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
 }
