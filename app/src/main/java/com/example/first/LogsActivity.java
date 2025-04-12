@@ -142,18 +142,4 @@ public class LogsActivity extends AppCompatActivity {
             }
         });
     }
-
-    // Handle user logout
-    public void logout() {
-        SharedPreferences prefs = getSharedPreferences("AppPrefs", MODE_PRIVATE);
-        SharedPreferences.Editor editor = prefs.edit();
-        editor.remove("userId");
-        editor.remove("isLoggedIn");
-        editor.apply();
-
-        // Navigate back to login activity
-        Intent intent = new Intent(LogsActivity.this, LoginActivity.class);
-        startActivity(intent);
-        finish();  // Close the current activity
-    }
 }

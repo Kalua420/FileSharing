@@ -123,9 +123,13 @@ public class DatabaseHelper {
                                 result.setSuccess(true);
                                 result.setMessage("Login successful");
                                 result.setUserId(rs.getInt("id"));
-                            } else {
+                            } else if ("rejected".equals(status)){
                                 result.setSuccess(false);
-                                result.setMessage("Account approval pending");
+                                result.setMessage("Account Rejected");
+                                result.setUserId(-1);
+                            }else {
+                                result.setSuccess(false);
+                                result.setMessage("Account Approval Pending");
                                 result.setUserId(-1);
                             }
                         } else {
@@ -312,7 +316,7 @@ public class DatabaseHelper {
                             log.setDestinationMac(rs.getString("destination_mac"));
                             log.setFilename(rs.getString("filename"));
                             log.setTimestamp(rs.getTimestamp("timestamp"));
-                            log.setFileSize(rs.getInt("file_size")); // 👈 Fetch filesize here
+                            log.setFileSize(rs.getInt("file_size"));
 
                             logs.add(log);
                         }
