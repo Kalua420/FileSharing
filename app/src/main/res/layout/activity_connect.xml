@@ -17,18 +17,34 @@
             android:elevation="4dp"
             android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
             app:popupTheme="@style/ThemeOverlay.AppCompat.Light">
-            <TextView
-                android:id="@+id/transferSpeed"
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="speed"
-                android:letterSpacing=".2"
-                android:fontFamily="sans-serif-black"
-                android:textStyle="bold"
-                android:textColor="@color/black"
-                android:layout_gravity="center_horizontal"
-                android:textSize="16sp"
-                tools:ignore="HardcodedText" />
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:padding="8dp">
+
+                <TextView
+                    android:id="@+id/logedInUserEmail"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:hint="@string/email"
+                    android:textColor="@color/black" />
+
+                <TextView
+                    android:id="@+id/transferSpeed"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="speed"
+                    android:letterSpacing="0.2"
+                    android:fontFamily="sans-serif-black"
+                    android:textStyle="bold"
+                    android:textColor="@color/black"
+                    android:textSize="16sp"
+                    tools:ignore="HardcodedText" />
+            </LinearLayout>
+
         </androidx.appcompat.widget.Toolbar>
     </com.google.android.material.appbar.AppBarLayout>
 
@@ -51,8 +67,6 @@
         android:layout_marginStart="10dp"
         android:progress="0"/>
 
-    <!-- Transfer Control Buttons -->
-    <!-- Add this section in your activity_connect.xml file in an appropriate location -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -110,6 +124,7 @@
             android:layout_height="wrap_content"
             android:padding="16dp"
             android:textIsSelectable="true"
+            android:visibility="gone"
             tools:ignore="SpeakableTextPresentCheck" />
     </ScrollView>
 

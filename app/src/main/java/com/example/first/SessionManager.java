@@ -4,9 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 
-/**
- * Session manager to handle login sessions and user information
- */
+
 public class SessionManager {
     // Shared preferences file name
     private static final String PREF_NAME = "AppPrefs";
@@ -17,9 +15,9 @@ public class SessionManager {
     private static final String KEY_EMAIL = "email";
 
     // Shared preferences object
-    private SharedPreferences pref;
-    private SharedPreferences.Editor editor;
-    private Context context;
+    private final SharedPreferences pref;
+    private final SharedPreferences.Editor editor;
+    private final Context context;
 
     // Constructor
     public SessionManager(Context context) {
@@ -28,11 +26,6 @@ public class SessionManager {
         editor = pref.edit();
     }
 
-    /**
-     * Create login session
-     * @param userId User ID
-     * @param email User email
-     */
     public void createLoginSession(int userId, String email) {
         editor.putBoolean(KEY_IS_LOGGED_IN, true);
         editor.putInt(KEY_USER_ID, userId);
@@ -40,33 +33,22 @@ public class SessionManager {
         editor.apply();
     }
 
-    /**
-     * Check login status
-     * @return true if user is logged in, false otherwise
-     */
+
     public boolean isLoggedIn() {
         return pref.getBoolean(KEY_IS_LOGGED_IN, false);
     }
 
-    /**
-     * Get stored user ID
-     * @return User ID or -1 if not found
-     */
+
     public int getUserId() {
         return pref.getInt(KEY_USER_ID, -1);
     }
 
-    /**
-     * Get stored user email
-     * @return User email or empty string if not found
-     */
+
     public String getUserEmail() {
         return pref.getString(KEY_EMAIL, "");
     }
 
-    /**
-     * Clear session details and redirect to login
-     */
+
     public void logout() {
         // Clear all data from shared preferences
         editor.clear();
