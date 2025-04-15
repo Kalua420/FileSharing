@@ -54,7 +54,7 @@ public class Connect extends AppCompatActivity {
     private LinearLayout send, receive;
     private Toolbar toolbar;
     @SuppressLint("StaticFieldLeak")
-    static TextView speed;
+    static TextView speed, userLogedInEmail;
     private FileTransferServer fileTransferService;
     private boolean isBound = false;
     @SuppressLint("StaticFieldLeak")
@@ -102,6 +102,8 @@ public class Connect extends AppCompatActivity {
         }
         int userId = sessionManager.getUserId();
         String userEmail = sessionManager.getUserEmail();
+        String userPhone = sessionManager.getUserPhone();
+        userLogedInEmail.setText(userEmail);
 
         myUserId = getIntent().getIntExtra("userId", -1);
         Log.d("userId", String.valueOf(myUserId));
@@ -317,6 +319,7 @@ public class Connect extends AppCompatActivity {
         progressBar = findViewById(R.id.progressBar);
         speed = findViewById(R.id.transferSpeed);
         clientConnected = findViewById(R.id.clientConnected);
+        userLogedInEmail = findViewById(R.id.logedInUserEmail);
 
         // Initialize new controls for file transfer
         fileName = findViewById(R.id.tv_file_name);
@@ -476,5 +479,22 @@ public class Connect extends AppCompatActivity {
 
     private void logout() {
         sessionManager.logout(); // This will clear session and redirect to login
+    }
+    public static void showTransferControlButton() {
+        if (btnPauseResume != null && btnCancel != null) {
+            btnPauseResume.setEnabled(true);
+            btnCancel.setEnabled(true);
+            btnPauseResume.setVisibility(View.VISIBLE);
+            btnCancel.setVisibility(View.VISIBLE);
+        }
+    }
+
+    public static void hideTransferControlButton() {
+        if (btnPauseResume != null && btnCancel != null) {
+            btnPauseResume.setEnabled(false);
+            btnCancel.setEnabled(false);
+            btnPauseResume.setVisibility(View.GONE);
+            btnCancel.setVisibility(View.GONE);
+        }
     }
 }
