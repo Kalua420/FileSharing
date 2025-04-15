@@ -22,6 +22,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
@@ -68,7 +69,18 @@ public class Connect extends AppCompatActivity {
     private View rootView;
     private static final int STORAGE_PERMISSION_CODE = 100;
     private static final int MANAGE_EXTERNAL_STORAGE_PERMISSION_REQUEST_CODE = 101;
-    private AppCompatButton stopServer, pauseTransfer, resumeTransfer, cancelTransfer;
+    private AppCompatButton stopServer;
+    // New UI components for transfer control
+    @SuppressLint("StaticFieldLeak")
+    public static Button btnPauseResume;
+    @SuppressLint("StaticFieldLeak")
+    public static Button btnCancel;
+    @SuppressLint("StaticFieldLeak")
+    public static TextView fileName;
+    @SuppressLint("StaticFieldLeak")
+    public static TextView transferStatus;
+    public static String currentTransferId;
+
     public static int myUserId;
     public static int targetUserId;
     private SessionManager sessionManager;
@@ -102,6 +114,38 @@ public class Connect extends AppCompatActivity {
             textViewContent.setText(savedLogText);
         }
         setupClickListeners();
+        setupTransferControls();
+    }
+
+    // Setup transfer control buttons
+    private void setupTransferControls() {
+        btnPauseResume.setOnClickListener(v -> {
+            if (isBound && fileTransferService != null && currentTransferId != null) {
+                FileTransferServer.TransferStatus status =
+                        fileTransferService.getActiveTransfers().get(currentTransferId);
+                if (status != null) {
+                    if (status.getState() == FileTransferServer.TransferState.RUNNING) {
+                        fileTransferService.pauseTransfer(currentTransferId);
+                        btnPauseResume.setText("Resume");
+                    } else if (status.getState() == FileTransferServer.TransferState.PAUSED) {
+                        fileTransferService.resumeTransfer(currentTransferId);
+                        btnPauseResume.setText("Pause");
+                    }
+                }
+            }
+        });
+
+        btnCancel.setOnClickListener(v -> {
+            if (isBound && fileTransferService != null && currentTransferId != null) {
+                fileTransferService.cancelTransfer(currentTransferId);
+                btnPauseResume.setEnabled(false);
+                btnCancel.setEnabled(false);
+            }
+        });
+
+        // Initially disable the buttons until a transfer starts
+        btnPauseResume.setEnabled(false);
+        btnCancel.setEnabled(false);
     }
 
     private void setupClickListeners() {
@@ -124,15 +168,15 @@ public class Connect extends AppCompatActivity {
         myMacAddress = MacAddressUtil.getMacAddress();
         if (ipToConnect.isEmpty()){
             if (!isHotspotEnabled(getApplicationContext())){
-                    if (!wifiManager.isWifiEnabled()) {
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                            showWifiSettingsDialog();
-                        } else {
-                            wifiManager.setWifiEnabled(true);
-                        }
-                        return;
+                if (!wifiManager.isWifiEnabled()) {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                        showWifiSettingsDialog();
+                    } else {
+                        wifiManager.setWifiEnabled(true);
                     }
+                    return;
                 }
+            }
             if (ipToConnect.isEmpty()) {
                 startScanner();
             } else {
@@ -264,6 +308,7 @@ public class Connect extends AppCompatActivity {
             }
         }
     }
+
     private void init() {
         send = findViewById(R.id.send);
         receive = findViewById(R.id.recv);
@@ -272,6 +317,13 @@ public class Connect extends AppCompatActivity {
         progressBar = findViewById(R.id.progressBar);
         speed = findViewById(R.id.transferSpeed);
         clientConnected = findViewById(R.id.clientConnected);
+
+        // Initialize new controls for file transfer
+        fileName = findViewById(R.id.tv_file_name);
+        transferStatus = findViewById(R.id.tv_transfer_status);
+        btnPauseResume = findViewById(R.id.btn_pause_resume);
+        btnCancel = findViewById(R.id.btn_cancel);
+
         // Initialize progress bar
         if (progressBar != null) {
             progressBar.setMax(100);
@@ -400,11 +452,13 @@ public class Connect extends AppCompatActivity {
         dialog.setCancelable(true);
         dialog.show();
     }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         new MenuInflater(this).inflate(R.menu.option,menu);
         return super.onCreateOptionsMenu(menu);
     }
+
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         int itemId = item.getItemId();
@@ -419,6 +473,7 @@ public class Connect extends AppCompatActivity {
         }
         return super.onOptionsItemSelected(item);
     }
+
     private void logout() {
         sessionManager.logout(); // This will clear session and redirect to login
     }
