@@ -35,4 +35,6 @@
     <string name="previous">Previous</string>
     <string name="logout">Logout</string>
     <string name="lorem_ipsum">Dustbin</string>
+    <string name="open">open</string>
+    <string name="home">home</string>
 </resources>
