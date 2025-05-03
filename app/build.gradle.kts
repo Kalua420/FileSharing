@@ -56,4 +56,5 @@ dependencies {
     implementation("androidx.documentfile:documentfile:1.0.1")
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
     implementation("mysql:mysql-connector-java:5.1.49")
+    implementation("de.hdodenhof:circleimageview:3.1.0")
 }

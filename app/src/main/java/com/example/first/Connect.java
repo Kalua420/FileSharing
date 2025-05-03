@@ -10,11 +10,14 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
 import android.os.IBinder;
 import android.provider.Settings;
 import android.util.Log;
@@ -31,12 +34,15 @@ import android.widget.Toast;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
+import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.AppCompatButton;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
 
+import com.google.android.material.navigation.NavigationView;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.MultiFormatWriter;
@@ -44,6 +50,8 @@ import com.google.zxing.common.BitMatrix;
 import com.journeyapps.barcodescanner.BarcodeEncoder;
 import com.journeyapps.barcodescanner.ScanContract;
 import com.journeyapps.barcodescanner.ScanOptions;
+
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Objects;
 
@@ -80,7 +88,8 @@ public class Connect extends AppCompatActivity {
     @SuppressLint("StaticFieldLeak")
     public static TextView transferStatus;
     public static String currentTransferId;
-
+    DrawerLayout drawerLayout;
+    NavigationView navigationView;
     public static int myUserId;
     public static int targetUserId;
     private SessionManager sessionManager;
@@ -102,7 +111,6 @@ public class Connect extends AppCompatActivity {
         }
         int userId = sessionManager.getUserId();
         String userEmail = sessionManager.getUserEmail();
-        String userPhone = sessionManager.getUserPhone();
         userLogedInEmail.setText(userEmail);
 
         myUserId = getIntent().getIntExtra("userId", -1);
@@ -198,17 +206,37 @@ public class Connect extends AppCompatActivity {
         myServerIP = ServerIP.getIp();
         myMacAddress = MacAddressUtil.getMacAddress();
 
-        // Check if we have valid values for both
-        if (myServerIP.isEmpty() || myMacAddress.isEmpty()) {
-            showSnackbar("Failed to get server information. Please try again.");
+        // If WiFi is enabled, continue with the process
+        if (wifiManager.isWifiEnabled()) {
+            // WiFi is enabled, proceed with the connection
+            continueWithConnection();
+            return;
+        }else if (!isHotspotEnabled(this)){
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle("Network Required")
+                    .setMessage("Please enable Hotspot to continue")
+                    .setPositiveButton("Enable Hotspot", (dialog, which) -> {
+                        // Enable hotspot
+                        enableHotspot();
+                        Toast.makeText(getApplicationContext(), "Please enable Hotspot", Toast.LENGTH_SHORT).show();
+                    })
+                    .setCancelable(true)
+                    .show();
             return;
         }
+        continueWithConnection();
+    }
 
-        // Check WiFi or hotspot state
-        if (!wifiManager.isWifiEnabled()) {
-            if (!isHotspotEnabled(getApplicationContext())) {
-                Toast.makeText(getApplicationContext(), "Please enable Hotspot", Toast.LENGTH_SHORT).show();
-                enableHotspot();
+    // Helper method to continue with the connection process
+    private void continueWithConnection() {
+        // Check if we have valid values for IP and MAC
+        if (myServerIP == null || myServerIP.isEmpty() || myMacAddress == null || myMacAddress.isEmpty()) {
+            // Try to get IP again
+            myServerIP = ServerIP.getIp();
+
+            // If still not valid, show error
+            if (myServerIP == null || myServerIP.isEmpty() || myMacAddress == null || myMacAddress.isEmpty()) {
+                showSnackbar("Failed to get server information. Please try again.");
                 return;
             }
         }
@@ -232,10 +260,11 @@ public class Connect extends AppCompatActivity {
         generateQRCode(ServerIpAndMac);
 
         try {
-            assert fileTransferService != null;
-            ipToConnect = fileTransferService.clientIp;
+            if (fileTransferService != null) {
+                ipToConnect = fileTransferService.clientIp;
+            }
         } catch (RuntimeException e) {
-            throw new RuntimeException(e);
+            Log.e("Connect", "Error getting client IP", e);
         }
     }
 
@@ -336,14 +365,74 @@ public class Connect extends AppCompatActivity {
 
     @SuppressLint("PrivateApi")
     public boolean isHotspotEnabled(Context context) {
-        WifiManager wifiManager = (WifiManager) context.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
-        try {
-            Method method = wifiManager.getClass().getDeclaredMethod("isWifiApEnabled");
-            method.setAccessible(true);
-            return (Boolean) method.invoke(wifiManager);
-        } catch (Exception e) {
-            e.printStackTrace();
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+            // For Android 10 (Q) and above
+            ConnectivityManager connectivityManager =
+                    (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+
+            if (connectivityManager != null) {
+                try {
+                    // Use TetheringManager for Android 10+
+                    Class<?> tetheringManagerClass = Class.forName("android.net.TetheringManager");
+                    Field startTetheringCallbackField = tetheringManagerClass.getDeclaredField("START_TETHERING_CALLBACK");
+                    Object startTetheringCallback = startTetheringCallbackField.get(null);
+
+                    Method getSystemServiceMethod = ConnectivityManager.class.getMethod("getSystemService", Class.class);
+                    Object tetheringManager = getSystemServiceMethod.invoke(connectivityManager, tetheringManagerClass);
+
+                    if (tetheringManager != null) {
+                        // Get active tether interfaces
+                        Method getTetheringInterfacesMethod = tetheringManagerClass.getMethod("getTetherableIfaces");
+                        String[] tetherableIfaces = (String[]) getTetheringInterfacesMethod.invoke(tetheringManager);
+
+                        Method getActiveTetheringInterfacesMethod = tetheringManagerClass.getMethod("getTetheredIfaces");
+                        String[] tetheredIfaces = (String[]) getActiveTetheringInterfacesMethod.invoke(tetheringManager);
+
+                        // If there are active tethered interfaces, hotspot is likely enabled
+                        return tetheredIfaces != null && tetheredIfaces.length > 0;
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    // Fallback to checking tethered interfaces directly via reflection
+                    try {
+                        Method method = connectivityManager.getClass().getDeclaredMethod("getTetheredIfaces");
+                        method.setAccessible(true);
+                        String[] tetheredIfaces = (String[]) method.invoke(connectivityManager);
+                        return tetheredIfaces != null && tetheredIfaces.length > 0;
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                    }
+                }
+            }
             return false;
+        } else if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            // For Android 8.0 (Oreo) to Android 9 (Pie)
+            ConnectivityManager connectivityManager =
+                    (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+
+            if (connectivityManager != null) {
+                try {
+                    Method method = connectivityManager.getClass().getDeclaredMethod("getTetheredIfaces");
+                    method.setAccessible(true);
+                    String[] tetheredIfaces = (String[]) method.invoke(connectivityManager);
+                    return tetheredIfaces != null && tetheredIfaces.length > 0;
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+            return false;
+        } else {
+            // For versions below Android 8.0
+            WifiManager wifiManager = (WifiManager) context.getApplicationContext()
+                    .getSystemService(Context.WIFI_SERVICE);
+            try {
+                Method method = wifiManager.getClass().getDeclaredMethod("isWifiApEnabled");
+                method.setAccessible(true);
+                return (Boolean) method.invoke(wifiManager);
+            } catch (Exception e) {
+                e.printStackTrace();
+                return false;
+            }
         }
     }
 
