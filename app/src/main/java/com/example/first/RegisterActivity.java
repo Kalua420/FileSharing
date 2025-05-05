@@ -2,11 +2,11 @@ package com.example.first;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
-import android.graphics.Color;
-import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.text.method.PasswordTransformationMethod;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -25,6 +25,8 @@ public class RegisterActivity extends AppCompatActivity {
     private ProgressBar progressBar;
     private DatabaseHelper dbHelper;
     private Spinner spinnerBranch;
+    private boolean passwordVisible = false;
+    private boolean confirmPasswordVisible = false;
 
     @SuppressLint("MissingInflatedId")
     @Override
@@ -44,6 +46,10 @@ public class RegisterActivity extends AppCompatActivity {
         spinnerBranch = findViewById(R.id.spinnerBranch);
         editTextAadharNumber = findViewById(R.id.editTextAadharNumber);
         editTextAddress = findViewById(R.id.editTextAddress);
+
+        // Set up password visibility toggles
+        setupPasswordVisibilityToggles();
+
         // Register button click listener
         btnRegister.setOnClickListener(v -> validateAndRegister());
 
@@ -53,6 +59,63 @@ public class RegisterActivity extends AppCompatActivity {
             startActivity(intent);
         });
         setupBranchSpinner();
+    }
+
+    @SuppressLint("ClickableViewAccessibility")
+    private void setupPasswordVisibilityToggles() {
+        // Set up password visibility toggle
+        editTextPassword.setOnTouchListener((v, event) -> {
+            // Check if the touch was on the right side of the EditText (where the drawable is)
+            if (event.getAction() == MotionEvent.ACTION_UP &&
+                    event.getRawX() >= (editTextPassword.getRight() - editTextPassword.getCompoundDrawables()[2].getBounds().width() - editTextPassword.getPaddingRight())) {
+
+                // Toggle password visibility
+                passwordVisible = !passwordVisible;
+
+                // Update input type and drawable based on visibility state
+                if (passwordVisible) {
+                    // Show password
+                    editTextPassword.setTransformationMethod(null);
+                    editTextPassword.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_visibility, 0);
+                } else {
+                    // Hide password
+                    editTextPassword.setTransformationMethod(PasswordTransformationMethod.getInstance());
+                    editTextPassword.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_visibility_off, 0);
+                }
+
+                // Move cursor to end of text
+                editTextPassword.setSelection(editTextPassword.getText().length());
+                return true;
+            }
+            return false;
+        });
+
+        // Set up confirm password visibility toggle
+        editTextConfirmPassword.setOnTouchListener((v, event) -> {
+            // Check if the touch was on the right side of the EditText (where the drawable is)
+            if (event.getAction() == MotionEvent.ACTION_UP &&
+                    event.getRawX() >= (editTextConfirmPassword.getRight() - editTextConfirmPassword.getCompoundDrawables()[2].getBounds().width() - editTextConfirmPassword.getPaddingRight())) {
+
+                // Toggle confirm password visibility
+                confirmPasswordVisible = !confirmPasswordVisible;
+
+                // Update input type and drawable based on visibility state
+                if (confirmPasswordVisible) {
+                    // Show password
+                    editTextConfirmPassword.setTransformationMethod(null);
+                    editTextConfirmPassword.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_visibility, 0);
+                } else {
+                    // Hide password
+                    editTextConfirmPassword.setTransformationMethod(PasswordTransformationMethod.getInstance());
+                    editTextConfirmPassword.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_visibility_off, 0);
+                }
+
+                // Move cursor to end of text
+                editTextConfirmPassword.setSelection(editTextConfirmPassword.getText().length());
+                return true;
+            }
+            return false;
+        });
     }
 
     private void validateAndRegister() {
@@ -159,37 +222,26 @@ public class RegisterActivity extends AppCompatActivity {
         spinnerBranch.setAdapter(adapter);
 
         // Fetch branches from database
-        dbHelper.fetchBranches(new DatabaseHelper.BranchCallback() {
-            @Override
-            public void onBranchResult(boolean success, ArrayList<String> branches, String message) {
-                if (success && branches != null) {
-                    // Clear existing items except "Select Branch"
-                    branchList.clear();
-                    branchList.add("Select Branch");
+        dbHelper.fetchBranches((success, branches, message) -> {
+            if (success && branches != null) {
+                // Clear existing items except "Select Branch"
+                branchList.clear();
+                branchList.add("Select Branch");
 
-                    // Add branches from database
-                    branchList.addAll(branches);
+                // Add branches from database
+                branchList.addAll(branches);
 
-                    // Notify adapter of data change
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            adapter.notifyDataSetChanged();
-                        }
-                    });
-                } else {
-                    // If database fetch fails, use default branches
-                    branchList.clear();
-                    branchList.add("Select Branch");
+                // Notify adapter of data change
+                runOnUiThread(adapter::notifyDataSetChanged);
+            } else {
+                // If database fetch fails, use default branches
+                branchList.clear();
+                branchList.add("Select Branch");
 
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            adapter.notifyDataSetChanged();
-                            Log.e("Branches", "Error loading from DB: " + message);
-                        }
-                    });
-                }
+                runOnUiThread(() -> {
+                    adapter.notifyDataSetChanged();
+                    Log.e("Branches", "Error loading from DB: " + message);
+                });
             }
         });
     }

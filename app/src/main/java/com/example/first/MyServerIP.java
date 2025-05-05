@@ -1,22 +1,12 @@
 package com.example.first;
 
-import android.Manifest;
-import android.annotation.SuppressLint;
-import android.content.Context;
-import android.content.pm.PackageManager;
-import android.net.wifi.WifiInfo;
-import android.net.wifi.WifiManager;
-import android.os.Build;
 import android.util.Log;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import java.net.InetAddress;
 import java.net.NetworkInterface;
-import java.net.SocketException;
-import java.util.Collections;
 import java.util.Enumeration;
-import java.util.List;
 import java.util.regex.Pattern;
 
 /** @noinspection CallToPrintStackTrace*/

@@ -11,13 +11,11 @@ import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
-import android.os.Handler;
 import android.os.IBinder;
 import android.provider.Settings;
 import android.util.Log;
@@ -34,7 +32,6 @@ import android.widget.Toast;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
-import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.AppCompatButton;
 import androidx.appcompat.widget.Toolbar;
@@ -161,14 +158,32 @@ public class Connect extends AppCompatActivity {
     private void setupClickListeners() {
         WifiManager wifiManager = (WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE);
         send.setOnClickListener(v -> {
-            if (ipToConnect.isEmpty()){
-                handleSendClick(wifiManager);
-            }else {
+            if (ipToConnect.isEmpty()) {
+                // Show a loading indicator if needed
+                showSnackbar("Testing database connection...");
+
+                // Run database connection test on a background thread
+                new Thread(() -> {
+                    DatabaseHelper dbHelper = new DatabaseHelper(); // or get your database instance
+                    boolean connectionSuccessful = dbHelper.testConnection();
+
+                    // Update UI on the main thread
+                    runOnUiThread(() -> {
+                        if (connectionSuccessful) {
+                            showSnackbar("Database connection successful");
+                            handleSendClick(wifiManager);
+                        } else {
+                            showSnackbar("Database connection failed");
+                        }
+                    });
+                }).start();
+            } else {
                 showSnackbar("Connecting to: " + ipToConnect);
                 Intent i = new Intent(getApplicationContext(), MainActivity.class);
                 startActivity(i);
             }
         });
+
         receive.setOnClickListener(v -> {
             handleReceiveClick(wifiManager);
         });

@@ -14,7 +14,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.Objects;
 import java.util.Properties;
 
 public class DatabaseHelper {
@@ -24,7 +23,7 @@ public class DatabaseHelper {
     private static final String DB_NAME = "project";
     private static final String DB_USER = "root";
     private static final String DB_PASS = "root";
-    private static final String DB_IP = "192.168.144.137";
+    private static final String DB_IP = "192.168.59.137";
     private static final int DB_PORT = 3306;
     private static final int TIMEOUT = 5000;
 
@@ -79,26 +78,22 @@ public class DatabaseHelper {
 
     // Test Connection Method
     @SuppressLint("StaticFieldLeak")
-    public void testConnection(final DatabaseCallback callback) {
-        new AsyncTask<Void, Void, ConnectionResult>() {
-            @Override
-            protected ConnectionResult doInBackground(Void... voids) {
-                ConnectionResult result = new ConnectionResult();
-                try (Connection conn = getConnection()) {
-                    result.setSuccess(true);
-                    result.setMessage("Database connection successful");
-                } catch (Exception e) {
-                    result.setSuccess(false);
-                    result.setMessage("Connection failed: " + e.getMessage());
-                }
-                return result;
+    public boolean testConnection() {
+        try {
+            // Create a synchronous connection test
+            ConnectionResult result = new ConnectionResult();
+            try (Connection ignored = getConnection()) {
+                result.setSuccess(true);
+                result.setMessage("Database connection successful");
+                return true; // Connection successful
+            } catch (Exception e) {
+                Log.e("DatabaseConnection", "Connection failed: " + e.getMessage());
+                return false; // Connection failed
             }
-
-            @Override
-            protected void onPostExecute(ConnectionResult result) {
-                callback.onResult(result.isSuccess(), result.getMessage(), result.getUserId());
-            }
-        }.execute();
+        } catch (Exception e) {
+            Log.e("DatabaseConnection", "Failed to start connection test: " + e.getMessage());
+            return false; // Something went wrong when testing connection
+        }
     }
 
     // User Login Method
@@ -170,7 +165,55 @@ public class DatabaseHelper {
                 try {
                     conn = getConnection();
 
-                    // First, get the branch ID from branch name
+                    // Check if email already exists
+                    String checkEmailSql = "SELECT id FROM users WHERE email = ?";
+                    pstmt = conn.prepareStatement(checkEmailSql);
+                    pstmt.setString(1, email);
+                    rs = pstmt.executeQuery();
+
+                    if (rs.next()) {
+                        result.setSuccess(false);
+                        result.setMessage("Email already exists");
+                        return result;
+                    }
+
+                    // Close previous resources
+                    rs.close();
+                    pstmt.close();
+
+                    // Check if phone already exists
+                    String checkPhoneSql = "SELECT id FROM users WHERE phone = ?";
+                    pstmt = conn.prepareStatement(checkPhoneSql);
+                    pstmt.setString(1, phone);
+                    rs = pstmt.executeQuery();
+
+                    if (rs.next()) {
+                        result.setSuccess(false);
+                        result.setMessage("Phone number already exists");
+                        return result;
+                    }
+
+                    // Close previous resources
+                    rs.close();
+                    pstmt.close();
+
+                    // Check if Aadhar number already exists
+                    String checkAadharSql = "SELECT id FROM users WHERE aadhar = ?";
+                    pstmt = conn.prepareStatement(checkAadharSql);
+                    pstmt.setString(1, aadhar);
+                    rs = pstmt.executeQuery();
+
+                    if (rs.next()) {
+                        result.setSuccess(false);
+                        result.setMessage("Aadhar number already exists");
+                        return result;
+                    }
+
+                    // Close previous resources
+                    rs.close();
+                    pstmt.close();
+
+                    // Get the branch ID from branch name
                     String getBranchIdSql = "SELECT id FROM branch WHERE branch_name = ?";
                     pstmt = conn.prepareStatement(getBranchIdSql);
                     pstmt.setString(1, branchName);
@@ -185,6 +228,7 @@ public class DatabaseHelper {
                     int branchId = rs.getInt("id");
 
                     // Close the previous PreparedStatement
+                    rs.close();
                     pstmt.close();
 
                     // Now insert the user with the branch ID
@@ -217,9 +261,7 @@ public class DatabaseHelper {
                     }
                 } catch (SQLException e) {
                     result.setSuccess(false);
-                    result.setMessage(Objects.requireNonNull(e.getMessage()).contains("Duplicate")
-                            ? "Email or phone number already exists"
-                            : "Registration error: " + e.getMessage());
+                    result.setMessage("Registration error: " + e.getMessage());
                     Log.e(TAG, "Registration error", e);
                 } catch (Exception e) {
                     result.setSuccess(false);

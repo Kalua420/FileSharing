@@ -10,6 +10,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import java.util.List;
 
+/** @noinspection ALL*/
 public class FilesAdapter extends RecyclerView.Adapter<FilesAdapter.FileViewHolder> {
     private final List<FileModel> files;
 

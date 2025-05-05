@@ -1,7 +1,6 @@
 package com.example.first;
 
 public class LogEntry {
-    private int logId;
     private int senderId;
     private int receiverId;
     private String sourceMac;
@@ -10,9 +9,8 @@ public class LogEntry {
     private long fileSize; // 👈 New field for file size
     private java.sql.Timestamp timestamp;
 
-    // Getters and setters
-    public int getLogId() { return logId; }
-    public void setLogId(int logId) { this.logId = logId; }
+    public void setLogId(int logId) {
+    }
 
     public int getSenderId() { return senderId; }
     public void setSenderId(int senderId) { this.senderId = senderId; }

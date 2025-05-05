@@ -1,8 +1,11 @@
 package com.example.first;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.text.method.PasswordTransformationMethod;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -18,6 +21,7 @@ public class LoginActivity extends AppCompatActivity {
     private ProgressBar progressBar;
     private DatabaseHelper dbHelper;
     private SessionManager sessionManager;
+    private boolean passwordVisible = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,6 +48,9 @@ public class LoginActivity extends AppCompatActivity {
 
         dbHelper = new DatabaseHelper();
 
+        // Set up password visibility toggle
+        setupPasswordVisibilityToggle();
+
         // Login button click listener
         btnLogin.setOnClickListener(v -> validateAndLogin());
 
@@ -51,6 +58,35 @@ public class LoginActivity extends AppCompatActivity {
         txtRegister.setOnClickListener(v -> {
             Intent intent = new Intent(LoginActivity.this, RegisterActivity.class);
             startActivity(intent);
+        });
+    }
+
+    @SuppressLint("ClickableViewAccessibility")
+    private void setupPasswordVisibilityToggle() {
+        editTextPassword.setOnTouchListener((v, event) -> {
+            // Check if the touch was on the right side of the EditText (where the drawable is)
+            if (event.getAction() == MotionEvent.ACTION_UP &&
+                    event.getRawX() >= (editTextPassword.getRight() - editTextPassword.getCompoundDrawables()[2].getBounds().width() - editTextPassword.getPaddingRight())) {
+
+                // Toggle password visibility
+                passwordVisible = !passwordVisible;
+
+                // Update input type and drawable based on visibility state
+                if (passwordVisible) {
+                    // Show password
+                    editTextPassword.setTransformationMethod(null);
+                    editTextPassword.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_visibility, 0);
+                } else {
+                    // Hide password
+                    editTextPassword.setTransformationMethod(PasswordTransformationMethod.getInstance());
+                    editTextPassword.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_visibility_off, 0);
+                }
+
+                // Move cursor to end of text
+                editTextPassword.setSelection(editTextPassword.getText().length());
+                return true;
+            }
+            return false;
         });
     }
 
