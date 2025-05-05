@@ -17,10 +17,7 @@ import androidx.core.app.NotificationCompat;
 import java.io.*;
 import java.net.*;
 import java.text.DecimalFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.HashMap;
-import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -345,7 +342,7 @@ public class FileTransferServer extends Service {
             this.uploadDirectory = uploadDirectory;
         }
 
-        @SuppressLint("NewApi")
+        @SuppressLint({"NewApi", "SetTextI18n"})
         @Override
         public void run() {
             DataInputStream dis = null;
@@ -391,10 +388,7 @@ public class FileTransferServer extends Service {
                 File outputFile = new File(uploadDirectory, fileName);
 
                 // Check if we need to append to an existing file (for resume)
-                boolean append = false;
-                if (status.getLastResumePosition() > 0) {
-                    append = true;
-                }
+                boolean append = status.getLastResumePosition() > 0;
 
                 fos = new FileOutputStream(outputFile, append);
                 bos = new BufferedOutputStream(fos);
