@@ -17,7 +17,7 @@ import java.text.DecimalFormat;
 /** @noinspection ALL*/
 public class FileTransferClient {
     private static final String TAG = "FileTransferClient";
-    private static final int BUFFER_SIZE = 65536;
+    private static final int BUFFER_SIZE = 65535;
     private static final int PORT = 5000;
     private DatabaseHelper db = new DatabaseHelper();
     private static String senderMac = "";

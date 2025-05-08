@@ -497,6 +497,7 @@ public class Connect extends AppCompatActivity {
             unbindService(connection);
             isBound = false;
         }
+        resetAllStaticValues();
         super.onDestroy();
     }
 
@@ -600,5 +601,27 @@ public class Connect extends AppCompatActivity {
             btnPauseResume.setVisibility(View.GONE);
             btnCancel.setVisibility(View.GONE);
         }
+    }
+    public static void resetAllStaticValues() {
+        Log.d("Connect", "Resetting all static values");
+        savedLogText = "";
+        ipToConnect = "";
+        myServerIP = "";
+        serverMac = "";
+        myMacAddress = "";
+        currentTransferId = null;
+        myUserId = -1;
+        targetUserId = -1;
+
+        // Reset UI static references
+        textViewContent = null;
+        clientConnected = null;
+        progressBar = null;
+        speed = null;
+        userLogedInEmail = null;
+        fileName = null;
+        transferStatus = null;
+        btnPauseResume = null;
+        btnCancel = null;
     }
 }
