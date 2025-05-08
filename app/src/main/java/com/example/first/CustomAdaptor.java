@@ -27,6 +27,6 @@ public class CustomAdaptor extends FragmentStateAdapter {
 
     @Override
     public int getItemCount() {
-        return 5;
+        return 4;
     }
 }

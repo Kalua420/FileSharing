@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
 import android.content.pm.ServiceInfo;
@@ -27,13 +28,15 @@ public class FileTransferServer extends Service {
     private static final int PORT = 5000;
     private static final int NOTIFICATION_ID = 1;
     private static final String CHANNEL_ID = "FileTransferChannel";
+    private static final String ACTION_STOP_SERVICE = "com.example.first.STOP_SERVICE";
+
     private boolean isRunning = false;
     private ServerSocket serverSocket;
     private Thread serverThread;
     public String clientIp = "";
     private final IBinder binder = new LocalBinder();
     private static final String FileDir = "/storage/emulated/0/";
-    private static final int BufferSize = 65536;
+    private static final int BufferSize = 65535;
 
     // Transfer state management
     private final ConcurrentHashMap<String, TransferStatus> activeTransfers = new ConcurrentHashMap<>();
@@ -117,6 +120,12 @@ public class FileTransferServer extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        // Check if this is a stop service action
+        if (intent != null && ACTION_STOP_SERVICE.equals(intent.getAction())) {
+            stopSelf();
+            return START_NOT_STICKY;
+        }
+
         // Start as foreground service with notification
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             startForeground(NOTIFICATION_ID, createNotification(),
@@ -146,12 +155,27 @@ public class FileTransferServer extends Service {
     }
 
     private Notification createNotification() {
+        // Create an intent for stopping the service
+        Intent stopIntent = new Intent(this, FileTransferServer.class);
+        stopIntent.setAction(ACTION_STOP_SERVICE);
+
+        // Create a PendingIntent
+        int flags = PendingIntent.FLAG_UPDATE_CURRENT;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            flags |= PendingIntent.FLAG_IMMUTABLE;
+        }
+
+        PendingIntent stopPendingIntent = PendingIntent.getService(
+                this, 0, stopIntent, flags);
+
+        // Build the notification with a stop action
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setContentTitle("File Transfer Service")
                 .setContentText("Service is running")
                 .setSmallIcon(android.R.drawable.ic_menu_always_landscape_portrait)
                 .setPriority(NotificationCompat.PRIORITY_LOW)
-                .setOngoing(true);
+                .setOngoing(true)
+                .addAction(android.R.drawable.ic_menu_close_clear_cancel, "Stop", stopPendingIntent);
 
         return builder.build();
     }
@@ -362,7 +386,6 @@ public class FileTransferServer extends Service {
                 status = new TransferStatus(fileName);
                 status.setTotalBytes(fileSize);
                 activeTransfers.put(status.getTransferId(), status);
-
                 // Update UI with new transfer info
                 updateUI("Receiving file: " + fileName);
 
