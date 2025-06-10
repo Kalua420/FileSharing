@@ -575,7 +575,14 @@ public class Connect extends AppCompatActivity {
             Intent intent = new Intent(getApplicationContext(),LogsActivity.class);
             intent.putExtra("userId",myUserId);
             startActivity(intent);
-        }if (item.getItemId() == R.id.menu_logout) { // Add this item in your menu XML
+        }if (item.getItemId() == R.id.gallary) { // Add this item in your menu XML
+            Toast.makeText(getApplicationContext(), "Gallary", Toast.LENGTH_SHORT).show();
+            Intent i = new Intent(getApplicationContext(),Gallary.class);
+            startActivity(i);
+            return true;
+        }
+        if (item.getItemId() == R.id.menu_logout) { // Add this item in your menu XML
+            Toast.makeText(getApplicationContext(), "Logout", Toast.LENGTH_SHORT).show();
             logout();
             return true;
         }

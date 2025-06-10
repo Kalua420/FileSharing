@@ -7,6 +7,11 @@
         app:showAsAction="ifRoom"
         android:title="@string/logs"
         tools:ignore="HardcodedText" />
+    <item android:id="@+id/gallary"
+        android:icon="@drawable/baseline_folder_24"
+        app:showAsAction="ifRoom"
+        android:title="@string/Gallary"
+        tools:ignore="HardcodedText" />
     <item
         android:id="@+id/menu_logout"
         android:icon="@drawable/baseline_logout_24"

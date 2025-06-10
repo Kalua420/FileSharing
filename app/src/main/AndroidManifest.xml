@@ -48,6 +48,9 @@
         android:theme="@style/Theme.First"
         tools:targetApi="34">
         <activity
+            android:name=".Gallary"
+            android:exported="false" />
+        <activity
             android:name=".LogsActivity"
             android:exported="false"
             android:theme="@style/Theme.First" />

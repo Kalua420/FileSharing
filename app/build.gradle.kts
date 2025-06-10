@@ -45,6 +45,7 @@ dependencies {
     implementation("androidx.activity:activity-ktx:1.10.1")
     implementation("androidx.navigation:navigation-fragment-ktx:2.8.9")
     implementation("androidx.navigation:navigation-ui-ktx:2.8.9")
+    implementation("androidx.activity:activity:1.10.1")
     testImplementation("junit:junit:4.13.2")
     implementation ("com.github.bumptech.glide:glide:4.16.0")
     implementation ("androidx.viewpager2:viewpager2:1.1.0")

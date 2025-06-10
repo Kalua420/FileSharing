@@ -23,7 +23,7 @@ public class DatabaseHelper {
     private static final String DB_NAME = "project";
     private static final String DB_USER = "root";
     private static final String DB_PASS = "root";
-    private static final String DB_IP = "192.168.212.137";
+    private static final String DB_IP = "192.168.245.172";
     private static final int DB_PORT = 3306;
     private static final int TIMEOUT = 5000;
 
@@ -37,8 +37,7 @@ public class DatabaseHelper {
     public interface LogsCallback {
         void onLogsResult(boolean success, ArrayList<LogEntry> logs, String message);
     }
-
-
+    
     // Hashing Method for Password
     private String hashPassword(String password) {
         try {
