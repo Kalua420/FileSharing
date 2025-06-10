@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <!-- Start Selection Mode (visible when not in selection mode) -->
+    <item
+        android:id="@+id/action_start_selection"
+        android:title="Select"
+        android:icon="@android:drawable/checkbox_off_background"
+        app:showAsAction="ifRoom" />
+
+    <!-- Select All (visible during selection mode) -->
+    <item
+        android:id="@+id/action_select_all"
+        android:title="Select All"
+        android:icon="@android:drawable/checkbox_on_background"
+        app:showAsAction="ifRoom"
+        android:visible="false" />
+
+    <!-- Cancel Selection (visible during selection mode) -->
+    <item
+        android:id="@+id/action_cancel_selection"
+        android:title="Cancel"
+        android:icon="@android:drawable/ic_menu_close_clear_cancel"
+        app:showAsAction="ifRoom"
+        android:visible="false" />
+
+</menu>

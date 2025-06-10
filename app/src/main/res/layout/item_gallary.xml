@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/itemContainer"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:padding="12dp"
+    android:background="?android:attr/selectableItemBackground"
+    android:gravity="center_vertical">
+
+    <!-- Selection Checkbox (hidden by default) -->
+    <CheckBox
+        android:id="@+id/selectionCheckBox"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="12dp"
+        android:visibility="gone"
+        android:focusable="false"
+        android:clickable="false" />
+
+    <!-- File Icon -->
+    <ImageView
+        android:id="@+id/fileIcon"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_marginEnd="16dp"
+        android:src="@android:drawable/ic_menu_info_details"
+        android:scaleType="centerCrop"
+        android:background="@android:drawable/dialog_holo_light_frame" />
+
+    <!-- File Details -->
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <!-- File Name -->
+        <TextView
+            android:id="@+id/fileName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="File Name"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="#333"
+            android:maxLines="2"
+            android:ellipsize="end" />
+
+        <!-- File Details Row -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="4dp">
+
+            <!-- File Type -->
+            <TextView
+                android:id="@+id/fileType"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="TYPE"
+                android:textSize="12sp"
+                android:textColor="#666"
+                android:background="#e0e0e0"
+                android:paddingStart="6dp"
+                android:paddingEnd="6dp"
+                android:paddingTop="2dp"
+                android:paddingBottom="2dp"
+                android:textStyle="bold"
+                android:layout_marginEnd="8dp" />
+
+            <!-- File Size -->
+            <TextView
+                android:id="@+id/fileSize"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0 B"
+                android:textSize="12sp"
+                android:textColor="#999" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <!-- Action Indicator -->
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@android:drawable/ic_menu_more"
+        android:alpha="0.3"
+        android:layout_marginStart="8dp" />
+
+</LinearLayout>
