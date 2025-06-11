@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="AppTheme" parent="Theme.MaterialComponents.DayNight">
+        <!-- For options menu text color -->
+        <item name="android:textColorPrimary">@color/menu_text_color</item>
+        <item name="android:textColorSecondary">@color/menu_text_secondary</item>
+
+        <!-- For popup menu styling -->
+        <item name="popupMenuStyle">@style/CustomPopupMenu</item>
+        <item name="android:popupMenuStyle">@style/CustomPopupMenu</item>
+    </style>
+
+    <style name="CustomPopupMenu" parent="Widget.MaterialComponents.PopupMenu">
+        <item name="android:textColor">@color/menu_text_color</item>
+        <item name="android:textSize">16sp</item>
+    </style>
+</resources>
