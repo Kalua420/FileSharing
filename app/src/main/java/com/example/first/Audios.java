@@ -51,7 +51,7 @@ public class Audios extends Fragment {
             String item = audioFiles.get(i);
             MediaHandler mediaHandler = new MediaHandler();
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                mediaHandler.playAudioWithExternalPlayer(requireContext(),Uri.parse(item));
+                mediaHandler.playMedia(requireContext(),Uri.parse(item));
             }
             return true;
         });

@@ -53,7 +53,7 @@ public class Videos extends Fragment {
             String item = videoModels.get(i).getPath();
             MediaHandler mediaHandler = new MediaHandler();
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                mediaHandler.playAudioWithExternalPlayer(requireContext(),Uri.parse(item));
+                mediaHandler.playMedia(requireContext(),Uri.parse(item));
             }
             return true;
         });

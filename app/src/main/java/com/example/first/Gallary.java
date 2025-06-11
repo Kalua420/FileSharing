@@ -46,6 +46,7 @@ public class Gallary extends AppCompatActivity implements GallaryAdapter.OnSelec
     private MenuItem selectAllMenuItem;
     private MenuItem cancelSelectionMenuItem;
     private MenuItem startSelectionMenuItem;
+    private MediaHandler mediaHandler;
 
     // Executor for background tasks
     private ExecutorService executorService;
@@ -55,6 +56,7 @@ public class Gallary extends AppCompatActivity implements GallaryAdapter.OnSelec
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_gallary);
+        mediaHandler = new MediaHandler();
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
@@ -245,18 +247,7 @@ public class Gallary extends AppCompatActivity implements GallaryAdapter.OnSelec
     }
 
     private String getMimeType(String filePath) {
-        try {
-            String extension = MimeTypeMap.getFileExtensionFromUrl(filePath);
-            if (extension != null && !extension.isEmpty()) {
-                String mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension.toLowerCase());
-                if (mimeType != null) {
-                    return mimeType;
-                }
-            }
-        } catch (Exception e) {
-            Log.w(TAG, "Error getting MIME type for: " + filePath, e);
-        }
-        return "application/octet-stream";
+        return mediaHandler.getMimeType(filePath);
     }
 
     private void onFileClick(GallaryItem gallaryItem) {
@@ -293,38 +284,94 @@ public class Gallary extends AppCompatActivity implements GallaryAdapter.OnSelec
                 return;
             }
 
-            Uri fileUri;
+            // Check if file type is supported before attempting to open
+            if (!mediaHandler.isFileSupported(gallaryItem.getPath())) {
+                showUnsupportedFileDialog(gallaryItem);
+                return;
+            }
+
+            // Get file category for better user feedback
+            String category = mediaHandler.getFileCategory(gallaryItem.getPath());
+            Log.d(TAG, "Opening " + category + " file: " + gallaryItem.getName());
+
+            // Use the enhanced file handler
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                // Use FileProvider for Android 7.0+
-                fileUri = FileProvider.getUriForFile(this,
+                // Create URI using FileProvider
+                Uri fileUri = FileProvider.getUriForFile(this,
                         getApplicationContext().getPackageName() + ".fileprovider", file);
+
+                // Use the universal file handler
+                mediaHandler.openFile(this, fileUri);
             } else {
-                fileUri = Uri.fromFile(file);
+                // Fallback for older Android versions
             }
 
-            Intent intent = new Intent(Intent.ACTION_VIEW);
-            intent.setDataAndType(fileUri, gallaryItem.getMimeType());
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-
-            if (intent.resolveActivity(getPackageManager()) != null) {
-                startActivity(intent);
-            } else {
-                showFileInfo(gallaryItem);
-            }
         } catch (Exception e) {
             Log.e(TAG, "Error opening file: " + gallaryItem.getName(), e);
             Toast.makeText(this, "Cannot open file: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+
+            // Fallback to showing file info
+            showFileInfo(gallaryItem);
         }
     }
+    private void showUnsupportedFileDialog(GallaryItem gallaryItem) {
+        androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(this);
+        builder.setTitle("Unsupported File Type")
+                .setMessage("This file type (" + gallaryItem.getType() + ") may not be supported by installed apps.\n\n" +
+                        "File: " + gallaryItem.getName() + "\n" +
+                        "Size: " + formatFileSize(gallaryItem.getSize()))
+                .setPositiveButton("Try to Open", (dialog, which) -> {
+                    try {
+                        // Force attempt to open with system handler
+                        File file = new File(gallaryItem.getPath());
+                        Uri fileUri = FileProvider.getUriForFile(this,
+                                getApplicationContext().getPackageName() + ".fileprovider", file);
 
+                        Intent intent = new Intent(Intent.ACTION_VIEW);
+                        intent.setDataAndType(fileUri, "application/octet-stream");
+                        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+
+                        Intent chooser = Intent.createChooser(intent, "Open with");
+                        startActivity(chooser);
+                    } catch (Exception e) {
+                        Toast.makeText(this, "No app found to open this file", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .setNeutralButton("File Info", (dialog, which) -> showFileInfo(gallaryItem))
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    // Enhanced file info display
     private void showFileInfo(GallaryItem gallaryItem) {
+        String category = mediaHandler.getFileCategory(gallaryItem.getPath());
+        String mimeType = mediaHandler.getMimeType(gallaryItem.getPath());
+
         String info = "File: " + gallaryItem.getName() + "\n" +
                 "Type: " + gallaryItem.getType() + "\n" +
+                "Category: " + category + "\n" +
+                "MIME Type: " + mimeType + "\n" +
                 "Size: " + formatFileSize(gallaryItem.getSize()) + "\n" +
                 "Path: " + gallaryItem.getPath();
 
-        Toast.makeText(this, info, Toast.LENGTH_LONG).show();
+        androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(this);
+        builder.setTitle("File Information")
+                .setMessage(info)
+                .setPositiveButton("Try to Open", (dialog, which) -> {
+                    try {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                            File file = new File(gallaryItem.getPath());
+                            Uri fileUri = FileProvider.getUriForFile(this,
+                                    getApplicationContext().getPackageName() + ".fileprovider", file);
+                            mediaHandler.openFile(this, fileUri);
+                        } else {
+                        }
+                    } catch (Exception e) {
+                        Toast.makeText(this, "Cannot open file: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .setNegativeButton("Close", null)
+                .show();
     }
 
     private void enterSelectionMode() {
@@ -553,84 +600,6 @@ public class Gallary extends AppCompatActivity implements GallaryAdapter.OnSelec
                 );
             }
         }).start();
-    }
-    // Helper method to send files as a consolidated batch
-    private void sendFilesAsConsolidatedBatch(FileTransferClient client, String ip, ArrayList<FileModel> files) {
-        try {
-            StringBuilder fileList = new StringBuilder();
-            long totalSize = 0;
-
-            for (int i = 0; i < files.size(); i++) {
-                FileModel file = files.get(i);
-                File fileObj = new File(file.getFilePath());
-
-                if (i > 0) fileList.append("|"); // Use delimiter to separate files
-                fileList.append(file.getFilePath());
-                totalSize += fileObj.length();
-            }
-
-            Log.d(TAG, "Sending consolidated batch: " + files.size() + " files, total size: " + totalSize + " bytes");
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                client.sendFile(ip, fileList.toString(), files.size(), "", "", Connect.serverMac);
-            }
-
-            runOnUiThread(() -> {
-                Toast.makeText(this, "Successfully sent " + files.size() + " files", Toast.LENGTH_LONG).show();
-            });
-
-            Log.d(TAG, "Batch transfer completed successfully");
-
-        } catch (Exception e) {
-            Log.e(TAG, "Error in consolidated batch send: " + e.getMessage(), e);
-
-            // Fallback: If batch method fails, try individual sends with proper synchronization
-            sendFilesWithSynchronization(client, ip, files);
-        }
-    }
-
-    // Fallback method: Send files individually but with proper synchronization
-    private void sendFilesWithSynchronization(FileTransferClient client, String ip, ArrayList<FileModel> files) {
-        int successCount = 0;
-        int failureCount = 0;
-
-        for (int i = 0; i < files.size(); i++) {
-            FileModel file = files.get(i);
-            final int fileIndex = i + 1;
-
-            try {
-                // Add synchronization delay
-                if (i > 0) {
-                    Thread.sleep(1000); // Wait 1 second between files
-                }
-
-                runOnUiThread(() ->
-                        Toast.makeText(this, "Sending (" + fileIndex + "/" + files.size() + "): " + file.getFileName(), Toast.LENGTH_SHORT).show()
-                );
-
-                // Send individual file
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                    client.sendFile(ip, file.getFilePath(), 1, "", "", Connect.serverMac);
-                }
-
-                successCount++;
-                Log.d(TAG, "Successfully sent file " + fileIndex + ": " + file.getFileName());
-
-            } catch (Exception e) {
-                failureCount++;
-                Log.e(TAG, "Failed to send file " + fileIndex + ": " + file.getFileName(), e);
-            }
-        }
-
-        final int finalSuccess = successCount;
-        final int finalFailure = failureCount;
-
-        runOnUiThread(() -> {
-            String result = "Transfer completed: " + finalSuccess + " sent";
-            if (finalFailure > 0) {
-                result += ", " + finalFailure + " failed";
-            }
-            Toast.makeText(this, result, Toast.LENGTH_LONG).show();
-        });
     }
 
     @Override
