@@ -82,9 +82,9 @@ public class Connect extends AppCompatActivity {
     private AppCompatButton stopServer;
     // New UI components for transfer control
     @SuppressLint("StaticFieldLeak")
-    public static Button btnPauseResume;
+    public static AppCompatButton btnPauseResume;
     @SuppressLint("StaticFieldLeak")
-    public static Button btnCancel;
+    public static AppCompatButton btnCancel;
     @SuppressLint("StaticFieldLeak")
     public static TextView fileName;
     @SuppressLint("StaticFieldLeak")

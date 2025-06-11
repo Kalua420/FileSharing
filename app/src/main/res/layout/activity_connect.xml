@@ -31,22 +31,20 @@
                     android:layout_weight="1"
                     android:hint="@string/email"
                     android:textColor="@color/black" />
-
-                <TextView
-                    android:id="@+id/transferSpeed"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="speed"
-                    android:letterSpacing="0.2"
-                    android:fontFamily="sans-serif-black"
-                    android:textStyle="bold"
-                    android:textColor="@color/black"
-                    android:textSize="16sp"
-                    tools:ignore="HardcodedText" />
             </LinearLayout>
 
         </androidx.appcompat.widget.Toolbar>
     </com.google.android.material.appbar.AppBarLayout>
+    <TextView
+        android:id="@+id/transferSpeed"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:letterSpacing="0.2"
+        android:fontFamily="sans-serif-black"
+        android:textStyle="bold"
+        android:textSize="16sp"
+        tools:ignore="HardcodedText" />
 
     <TextView
         android:id="@+id/clientConnected"
@@ -55,6 +53,13 @@
         android:gravity="center"
         android:padding="8dp"
         android:textSize="16sp" />
+    <TextView
+        android:id="@+id/tv_file_name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="8dp"/>
 
     <ProgressBar
         android:id="@+id/progressBar"
@@ -74,14 +79,6 @@
         android:padding="16dp">
 
         <TextView
-            android:id="@+id/tv_file_name"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            android:layout_marginBottom="8dp"/>
-
-        <TextView
             android:id="@+id/tv_transfer_status"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -94,7 +91,7 @@
             android:orientation="horizontal"
             android:gravity="center">
 
-            <Button
+            <androidx.appcompat.widget.AppCompatButton
                 android:id="@+id/btn_pause_resume"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -102,7 +99,7 @@
                 android:layout_marginEnd="8dp"
                 android:enabled="false"/>
 
-            <Button
+            <androidx.appcompat.widget.AppCompatButton
                 android:id="@+id/btn_cancel"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

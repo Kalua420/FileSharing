@@ -13,7 +13,6 @@ import android.os.Build;
 import android.os.Environment;
 import android.os.IBinder;
 import android.util.Log;
-
 import androidx.core.app.NotificationCompat;
 import java.io.*;
 import java.net.*;
@@ -459,9 +458,9 @@ public class FileTransferServer extends Service {
                     // Update progress
                     updateProgress(status);
 
-                    // Update speed every second
+                    // Update speed every 100 milliseconds (recommended for smooth display)
                     long currentTime = System.currentTimeMillis();
-                    if (currentTime - lastSpeedUpdateTime >= 1000) {
+                    if (currentTime - lastSpeedUpdateTime >= 100) { // 100ms for smooth updates
                         long bytesPerSecond = bytesReadSinceLastUpdate * 1000 / (currentTime - lastSpeedUpdateTime);
                         updateSpeed(bytesPerSecond, status.getTransferId());
                         lastSpeedUpdateTime = currentTime;
