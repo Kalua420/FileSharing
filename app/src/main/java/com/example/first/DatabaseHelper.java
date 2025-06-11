@@ -4,7 +4,6 @@ import android.annotation.SuppressLint;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.util.Log;
-
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.sql.Connection;
@@ -19,7 +18,6 @@ import java.util.Properties;
 public class DatabaseHelper {
     private static final String TAG = "DatabaseHelper";
 
-    // Database Configuration
     private static final String DB_NAME = "project";
     private static final String DB_USER = "root";
     private static final String DB_PASS = "root";
@@ -27,7 +25,6 @@ public class DatabaseHelper {
     private static final int DB_PORT = 3306;
     private static final int TIMEOUT = 5000;
 
-    // Callback Interfaces
     public interface DatabaseCallback {
         void onResult(boolean success, String message, int userId);
     }
@@ -350,7 +347,7 @@ public class DatabaseHelper {
                     try (ResultSet rs = stmt.executeQuery()) {
                         while (rs.next()) {
                             LogEntry log = new LogEntry();
-                            log.setLogId(rs.getInt("log_id"));
+                            // Removed log.setLogId() since log_id column doesn't exist in the table
                             log.setSenderId(rs.getInt("sender_id"));
                             log.setReceiverId(rs.getInt("receiver_id"));
                             log.setSourceMac(rs.getString("source_mac"));
@@ -387,7 +384,6 @@ public class DatabaseHelper {
         }.execute();
     }
 
-    // Internal Result Handling Class
     static class ConnectionResult {
         private boolean success;
         private String message;

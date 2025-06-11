@@ -9,6 +9,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.net.ConnectivityManager;
 import android.net.Uri;
@@ -18,7 +20,10 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.IBinder;
 import android.provider.Settings;
+import android.text.SpannableString;
+import android.text.style.ForegroundColorSpan;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -563,8 +568,9 @@ public class Connect extends AppCompatActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        new MenuInflater(this).inflate(R.menu.option,menu);
-        return super.onCreateOptionsMenu(menu);
+        getMenuInflater().inflate(R.menu.option, menu);
+        setMenuTextColor(menu); // Apply adaptive colors
+        return true;
     }
 
     @Override
@@ -630,5 +636,24 @@ public class Connect extends AppCompatActivity {
         transferStatus = null;
         btnPauseResume = null;
         btnCancel = null;
+    }
+    private void setMenuTextColor(Menu menu) {
+        for (int i = 0; i < menu.size(); i++) {
+            MenuItem item = menu.getItem(i);
+            SpannableString spanString = new SpannableString(item.getTitle().toString());
+
+            // Get adaptive text color based on theme
+            int textColor = getTextColorBasedOnMode();
+            spanString.setSpan(new ForegroundColorSpan(textColor), 0, spanString.length(), 0);
+            item.setTitle(spanString);
+        }
+    }
+    private int getTextColorBasedOnMode() {
+        int nightModeFlags = getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK;
+        if (nightModeFlags == Configuration.UI_MODE_NIGHT_YES) {
+            return ContextCompat.getColor(this, androidx.cardview.R.color.cardview_light_background);
+        } else {
+            return ContextCompat.getColor(this, androidx.cardview.R.color.cardview_dark_background);
+        }
     }
 }

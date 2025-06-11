@@ -87,6 +87,7 @@
     <ImageView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:contentDescription="TODO"
         android:src="@android:drawable/ic_menu_more"
         android:alpha="0.3"
         android:layout_marginStart="8dp" />

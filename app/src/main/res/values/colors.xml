@@ -5,4 +5,6 @@
     <color name="red">#F44336</color>
     <color name="custom_hint_color">#B0B0B0</color>
     <color name="white">#FFFFFF</color>
+    <color name="menu_text_color">#000000</color>
+    <color name="menu_text_secondary">#666666</color>
 </resources>

@@ -206,7 +206,6 @@ public class FileTransferClient {
                             });
                 }
             }
-
             private String formatSpeed(long bytesPerSecond) {
                 DecimalFormat df = new DecimalFormat("#.##");
                 if (bytesPerSecond < 1024) {
@@ -219,6 +218,7 @@ public class FileTransferClient {
             }
         }.execute();
     }
+
 
     private static class TransferProgress {
         final int progress;

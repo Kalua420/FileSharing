@@ -31,18 +31,16 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class Gallary extends AppCompatActivity {
+public class Gallary extends AppCompatActivity implements GallaryAdapter.OnSelectionModeChangeListener {
 
     private static final String TAG = "Gallary";
 
     private RecyclerView recyclerView;
     private GallaryAdapter gallaryAdapter;
     private List<GallaryItem> gallaryItemList;
-    private List<GallaryItem> selectedItems;
     private final String folderPath = Environment.getExternalStorageDirectory() + "/ShareGT";
 
     private boolean isSelectionMode = false;
-    private boolean isAllSelected = false;
     private TextView selectionCounter;
     private FloatingActionButton fabSend;
     private MenuItem selectAllMenuItem;
@@ -83,9 +81,10 @@ public class Gallary extends AppCompatActivity {
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
         gallaryItemList = new ArrayList<>();
-        selectedItems = new ArrayList<>();
 
         gallaryAdapter = new GallaryAdapter(gallaryItemList, this::onFileClick, this::onFileLongClick);
+        // Set the selection mode change listener
+        gallaryAdapter.setSelectionModeChangeListener(this);
         recyclerView.setAdapter(gallaryAdapter);
 
         // Initialize selection counter and send FAB
@@ -98,8 +97,7 @@ public class Gallary extends AppCompatActivity {
         }
     }
 
-    private void setupToolbar() {
-        Toolbar toolbar = findViewById(R.id.toolbar);
+    private void setupToolbar() {Toolbar toolbar = findViewById(R.id.toolbar);
         if (toolbar != null) {
             setSupportActionBar(toolbar);
             ActionBar actionBar = getSupportActionBar();
@@ -263,7 +261,8 @@ public class Gallary extends AppCompatActivity {
 
     private void onFileClick(GallaryItem gallaryItem) {
         if (isSelectionMode) {
-            toggleItemSelection(gallaryItem);
+            // This is handled by the adapter now
+            return;
         } else {
             openFile(gallaryItem);
         }
@@ -273,7 +272,17 @@ public class Gallary extends AppCompatActivity {
         if (!isSelectionMode) {
             enterSelectionMode();
         }
-        toggleItemSelection(gallaryItem);
+        // Selection is handled by the adapter
+    }
+
+    // Implementation of OnSelectionModeChangeListener
+    @Override
+    public void onSelectionModeChanged(boolean isSelectionMode, int selectedCount) {
+        this.isSelectionMode = isSelectionMode;
+        updateSelectionUI(selectedCount);
+        updateMenuVisibility();
+        updateSelectAllIcon(selectedCount);
+        updateSendButtonVisibility(selectedCount);
     }
 
     private void openFile(GallaryItem gallaryItem) {
@@ -319,100 +328,53 @@ public class Gallary extends AppCompatActivity {
     }
 
     private void enterSelectionMode() {
-        isSelectionMode = true;
-        isAllSelected = false;
-        updateSelectionUI();
         gallaryAdapter.setSelectionMode(true);
-        updateMenuVisibility();
-        updateSelectAllIcon();
     }
 
     private void exitSelectionMode() {
-        isSelectionMode = false;
-        isAllSelected = false;
-        selectedItems.clear();
-        updateSelectionUI();
         gallaryAdapter.setSelectionMode(false);
-        gallaryAdapter.clearSelections();
-        updateMenuVisibility();
-        updateSelectAllIcon();
-
         if (fabSend != null) {
             fabSend.hide();
         }
     }
 
-    private void toggleItemSelection(GallaryItem item) {
-        if (selectedItems.contains(item)) {
-            selectedItems.remove(item);
-            gallaryAdapter.setItemSelected(item, false);
-        } else {
-            selectedItems.add(item);
-            gallaryAdapter.setItemSelected(item, true);
-        }
-
-        // Update isAllSelected state
-        isAllSelected = selectedItems.size() == gallaryItemList.size();
-        updateSelectionUI();
-        updateSelectAllIcon();
-
-        // Show/hide send FAB based on selection
+    private void updateSendButtonVisibility(int selectedCount) {
         if (fabSend != null) {
-            if (selectedItems.isEmpty()) {
-                fabSend.hide();
-            } else {
+            if (isSelectionMode && selectedCount > 0) {
                 fabSend.show();
+            } else {
+                fabSend.hide();
             }
         }
     }
 
     private void toggleSelectAll() {
-        if (isAllSelected) {
-            // Deselect all
-            selectedItems.clear();
+        if (gallaryAdapter.isAllItemsSelected()) {
             gallaryAdapter.clearSelections();
-            isAllSelected = false;
-
-            if (fabSend != null) {
-                fabSend.hide();
-            }
         } else {
-            // Select all
-            selectedItems.clear();
-            selectedItems.addAll(gallaryItemList);
             gallaryAdapter.selectAll();
-            isAllSelected = true;
-
-            if (fabSend != null && !selectedItems.isEmpty()) {
-                fabSend.show();
-            }
         }
-
-        updateSelectionUI();
-        updateSelectAllIcon();
     }
 
-    private void updateSelectAllIcon() {
+    private void updateSelectAllIcon(int selectedCount) {
         if (selectAllMenuItem != null) {
+            boolean isAllSelected = selectedCount == gallaryItemList.size() && !gallaryItemList.isEmpty();
             if (isAllSelected) {
-                // Change to checked icon - using Android's built-in checked checkbox
-                selectAllMenuItem.setIcon(android.R.drawable.checkbox_on_background);
+                selectAllMenuItem.setIcon(R.drawable.checkbox);
                 selectAllMenuItem.setTitle("Deselect All");
             } else {
-                // Change to unchecked icon - using Android's built-in unchecked checkbox
-                selectAllMenuItem.setIcon(android.R.drawable.checkbox_off_background);
+                selectAllMenuItem.setIcon(R.drawable.uncheck);
                 selectAllMenuItem.setTitle("Select All");
             }
         }
     }
 
     @SuppressLint("SetTextI18n")
-    private void updateSelectionUI() {
+    private void updateSelectionUI(int selectedCount) {
         if (selectionCounter != null) {
             if (isSelectionMode) {
                 selectionCounter.setVisibility(View.VISIBLE);
-                int count = selectedItems.size();
-                selectionCounter.setText(count + (" selected"));
+                selectionCounter.setText(selectedCount + " selected");
             } else {
                 selectionCounter.setVisibility(View.GONE);
             }
@@ -422,8 +384,7 @@ public class Gallary extends AppCompatActivity {
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
             if (isSelectionMode) {
-                int count = selectedItems.size();
-                actionBar.setTitle(count + (" selected"));
+                actionBar.setTitle(selectedCount + " selected");
             } else {
                 actionBar.setTitle("Gallery");
             }
@@ -443,22 +404,32 @@ public class Gallary extends AppCompatActivity {
     }
 
     private void sendSelectedFiles() {
+        // Get selected items from adapter
+        List<GallaryItem> selectedItems = gallaryAdapter.getSelectedItems();
+
+        Log.d(TAG, "sendSelectedFiles called with " + selectedItems.size() + " selected items");
+
         if (selectedItems.isEmpty()) {
             Toast.makeText(this, "No files selected", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        // Validate that Connect class and its fields exist
-        String ip = null;
-        String serverMac = null;
+        // Log all selected items
+        for (int i = 0; i < selectedItems.size(); i++) {
+            Log.d(TAG, "Selected for sending " + i + ": " + selectedItems.get(i).getName() + " at " + selectedItems.get(i).getPath());
+        }
 
+        // Check connection availability
+        String ip = null;
         try {
-            // Use reflection to safely check if Connect class exists
-            Class<?> connectClass = Class.forName("com.example.first.Connect");
-            ip = (String) connectClass.getDeclaredField("ipToConnect").get(null);
-            serverMac = (String) connectClass.getDeclaredField("serverMac").get(null);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                ip = Connect.ipToConnect;
+            } else {
+                Toast.makeText(this, "Android version doesn't support this operation", Toast.LENGTH_SHORT).show();
+                return;
+            }
         } catch (Exception e) {
-            Log.w(TAG, "Connect class or fields not found", e);
+            Log.w(TAG, "Connect class not accessible", e);
         }
 
         if (ip == null || ip.isEmpty()) {
@@ -466,104 +437,199 @@ public class Gallary extends AppCompatActivity {
             return;
         }
 
-        // Convert GallaryItem to FileModel for compatibility
         ArrayList<FileModel> filesToSend = new ArrayList<>();
         for (GallaryItem item : selectedItems) {
-            filesToSend.add(new FileModel(item.getName(), item.getPath()));
+            File file = new File(item.getPath());
+            if (file.exists() && file.canRead()) {
+                filesToSend.add(new FileModel(item.getName(), item.getPath()));
+                Log.d(TAG, "Added to filesToSend: " + item.getName());
+            } else {
+                Toast.makeText(this, "Skipping inaccessible file: " + item.getName(), Toast.LENGTH_SHORT).show();
+                Log.w(TAG, "Skipping inaccessible file: " + item.getPath());
+            }
         }
 
-        // Send files
-        sendFiles(ip, serverMac, filesToSend);
+        Log.d(TAG, "Final filesToSend size: " + filesToSend.size());
 
-        // Exit selection mode after initiating send
+        if (filesToSend.isEmpty()) {
+            Toast.makeText(this, "No accessible files to send", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Use the corrected batch method
+        sendFilesInBatch(ip, filesToSend);
         exitSelectionMode();
     }
-
-    public void sendFiles(String ip, String serverMac, ArrayList<FileModel> files) {
+    // Send files in batch like the Files class does for "select all"
+    private void sendFilesInBatch(String ip, ArrayList<FileModel> files) {
         if (ip == null || ip.isEmpty()) {
             Toast.makeText(this, "Error: IP address is null or empty", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        Toast.makeText(this, "Starting file transfer...", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "Starting batch transfer of " + files.size() + " files...", Toast.LENGTH_SHORT).show();
+        Log.d(TAG, "Starting batch transfer of " + files.size() + " files to IP: " + ip);
 
-        // Use executor service for network operations
-        executorService.execute(() -> {
+        new Thread(() -> {
             try {
-                // Check if FileTransferClient exists
-                Class<?> clientClass = Class.forName("com.example.first.FileTransferClient");
-                Object fileTransferClient = clientClass.newInstance();
-
+                // Validate files first
+                ArrayList<FileModel> validFiles = new ArrayList<>();
                 for (FileModel file : files) {
-                    try {
-                        final String filePath = file.getFilePath();
-                        final String fileName = file.getFileName();
-
-                        if (filePath == null || filePath.isEmpty()) {
-                            runOnUiThread(() ->
-                                    Toast.makeText(this, "Invalid file path for: " + fileName, Toast.LENGTH_SHORT).show()
-                            );
-                            continue;
-                        }
-
-                        // Verify file exists and is readable
-                        File fileToSend = new File(filePath);
-                        if (!fileToSend.exists() || !fileToSend.canRead()) {
-                            runOnUiThread(() ->
-                                    Toast.makeText(this, "Cannot access file: " + fileName, Toast.LENGTH_SHORT).show()
-                            );
-                            continue;
-                        }
-
+                    File fileToCheck = new File(file.getFilePath());
+                    if (fileToCheck.exists() && fileToCheck.canRead() && fileToCheck.isFile()) {
+                        validFiles.add(file);
+                    } else {
+                        Log.w(TAG, "Skipping invalid file: " + file.getFileName());
                         runOnUiThread(() ->
-                                Toast.makeText(this, "Sending: " + fileName, Toast.LENGTH_SHORT).show()
+                                Toast.makeText(this, "Skipping invalid file: " + file.getFileName(), Toast.LENGTH_SHORT).show()
                         );
-
-                        Log.d(TAG, "Sending file: " + fileName + " from path: " + filePath);
-
-                        // Use reflection to call sendFile method
-                        try {
-                            java.lang.reflect.Method sendFileMethod = clientClass.getMethod(
-                                    "sendFile", String.class, String.class, int.class, String.class, String.class, String.class
-                            );
-                            sendFileMethod.invoke(fileTransferClient, ip, filePath, 1, "", "", serverMac);
-
-                            runOnUiThread(() ->
-                                    Toast.makeText(this, "Sent: " + fileName, Toast.LENGTH_SHORT).show()
-                            );
-                        } catch (NoSuchMethodException e) {
-                            Log.w(TAG, "sendFile method not found, trying alternative", e);
-                            runOnUiThread(() ->
-                                    Toast.makeText(this, "File transfer method not available", Toast.LENGTH_SHORT).show()
-                            );
-                        }
-
-                    } catch (Exception e) {
-                        final String errorMsg = e.getMessage();
-                        final String fileName = file.getFileName();
-                        runOnUiThread(() ->
-                                Toast.makeText(this, "Error sending " + fileName + ": " + errorMsg, Toast.LENGTH_SHORT).show()
-                        );
-                        Log.e(TAG, "Error sending file: " + fileName, e);
                     }
                 }
 
+                if (validFiles.isEmpty()) {
+                    runOnUiThread(() ->
+                            Toast.makeText(this, "No valid files to send", Toast.LENGTH_SHORT).show()
+                    );
+                    return;
+                }
+
+                // Send files one by one
+                int successCount = 0;
+                int failureCount = 0;
+
+                for (int i = 0; i < validFiles.size(); i++) {
+                    FileModel file = validFiles.get(i);
+                    final int fileIndex = i + 1;
+
+                    try {
+                        // Update UI with current file progress
+                        runOnUiThread(() ->
+                                Toast.makeText(this, "Sending (" + fileIndex + "/" + validFiles.size() + "): " +
+                                        file.getFileName(), Toast.LENGTH_SHORT).show()
+                        );
+
+                        Log.d(TAG, "Sending file " + fileIndex + "/" + validFiles.size() + ": " + file.getFileName());
+
+                        // Create new FileTransferClient for each file
+                        FileTransferClient fileTransferClient = new FileTransferClient();
+
+                        // Send individual file - this is the correct way
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                            fileTransferClient.sendFile(ip, file.getFilePath(), 1, "", "", Connect.serverMac);
+                        }
+
+                        // Wait a bit between files to avoid overwhelming the receiver
+                        // and to let the AsyncTask complete
+                        Thread.sleep(2000); // 2 seconds delay between files
+
+                        successCount++;
+                        Log.d(TAG, "Successfully initiated transfer for file " + fileIndex + ": " + file.getFileName());
+
+                    } catch (Exception e) {
+                        failureCount++;
+                        Log.e(TAG, "Failed to send file " + fileIndex + ": " + file.getFileName(), e);
+
+                        runOnUiThread(() ->
+                                Toast.makeText(this, "Failed to send: " + file.getFileName(), Toast.LENGTH_SHORT).show()
+                        );
+                    }
+                }
+
+                final int finalSuccess = successCount;
+                final int finalFailure = failureCount;
+
+                runOnUiThread(() -> {
+                    String result = "Transfer initiated for " + finalSuccess + " files";
+                    if (finalFailure > 0) {
+                        result += ", " + finalFailure + " failed to start";
+                    }
+                    Toast.makeText(this, result, Toast.LENGTH_LONG).show();
+                });
+
+            } catch (Exception e) {
+                Log.e(TAG, "Overall batch transfer error: " + e.getMessage(), e);
                 runOnUiThread(() ->
-                        Toast.makeText(this, "File transfer completed", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this, "Transfer error: " + e.getMessage(), Toast.LENGTH_LONG).show()
+                );
+            }
+        }).start();
+    }
+    // Helper method to send files as a consolidated batch
+    private void sendFilesAsConsolidatedBatch(FileTransferClient client, String ip, ArrayList<FileModel> files) {
+        try {
+            StringBuilder fileList = new StringBuilder();
+            long totalSize = 0;
+
+            for (int i = 0; i < files.size(); i++) {
+                FileModel file = files.get(i);
+                File fileObj = new File(file.getFilePath());
+
+                if (i > 0) fileList.append("|"); // Use delimiter to separate files
+                fileList.append(file.getFilePath());
+                totalSize += fileObj.length();
+            }
+
+            Log.d(TAG, "Sending consolidated batch: " + files.size() + " files, total size: " + totalSize + " bytes");
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                client.sendFile(ip, fileList.toString(), files.size(), "", "", Connect.serverMac);
+            }
+
+            runOnUiThread(() -> {
+                Toast.makeText(this, "Successfully sent " + files.size() + " files", Toast.LENGTH_LONG).show();
+            });
+
+            Log.d(TAG, "Batch transfer completed successfully");
+
+        } catch (Exception e) {
+            Log.e(TAG, "Error in consolidated batch send: " + e.getMessage(), e);
+
+            // Fallback: If batch method fails, try individual sends with proper synchronization
+            sendFilesWithSynchronization(client, ip, files);
+        }
+    }
+
+    // Fallback method: Send files individually but with proper synchronization
+    private void sendFilesWithSynchronization(FileTransferClient client, String ip, ArrayList<FileModel> files) {
+        int successCount = 0;
+        int failureCount = 0;
+
+        for (int i = 0; i < files.size(); i++) {
+            FileModel file = files.get(i);
+            final int fileIndex = i + 1;
+
+            try {
+                // Add synchronization delay
+                if (i > 0) {
+                    Thread.sleep(1000); // Wait 1 second between files
+                }
+
+                runOnUiThread(() ->
+                        Toast.makeText(this, "Sending (" + fileIndex + "/" + files.size() + "): " + file.getFileName(), Toast.LENGTH_SHORT).show()
                 );
 
-            } catch (ClassNotFoundException e) {
-                Log.e(TAG, "FileTransferClient class not found", e);
-                runOnUiThread(() ->
-                        Toast.makeText(this, "File transfer service not available", Toast.LENGTH_SHORT).show()
-                );
+                // Send individual file
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                    client.sendFile(ip, file.getFilePath(), 1, "", "", Connect.serverMac);
+                }
+
+                successCount++;
+                Log.d(TAG, "Successfully sent file " + fileIndex + ": " + file.getFileName());
+
             } catch (Exception e) {
-                final String errorMsg = e.getMessage();
-                runOnUiThread(() ->
-                        Toast.makeText(this, "Transfer error: " + errorMsg, Toast.LENGTH_SHORT).show()
-                );
-                Log.e(TAG, "Transfer error", e);
+                failureCount++;
+                Log.e(TAG, "Failed to send file " + fileIndex + ": " + file.getFileName(), e);
             }
+        }
+
+        final int finalSuccess = successCount;
+        final int finalFailure = failureCount;
+
+        runOnUiThread(() -> {
+            String result = "Transfer completed: " + finalSuccess + " sent";
+            if (finalFailure > 0) {
+                result += ", " + finalFailure + " failed";
+            }
+            Toast.makeText(this, result, Toast.LENGTH_LONG).show();
         });
     }
 

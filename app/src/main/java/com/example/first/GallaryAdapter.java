@@ -1,5 +1,6 @@
 package com.example.first;
 
+import android.annotation.SuppressLint;
 import android.os.Build;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -12,6 +13,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.request.RequestOptions;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,11 +21,11 @@ import java.util.Map;
 public class GallaryAdapter extends RecyclerView.Adapter<GallaryAdapter.GallaryViewHolder> {
 
     private final List<GallaryItem> gallaryItemList;
-    private OnGallaryItemClickListener clickListener;
-    private OnGallaryItemLongClickListener longClickListener;
+    private final OnGallaryItemClickListener clickListener;
+    private final OnGallaryItemLongClickListener longClickListener;
     private OnSelectionModeChangeListener selectionModeChangeListener;
     private boolean isSelectionMode = false;
-    private Map<GallaryItem, Boolean> selectedItems = new HashMap<>();
+    private final Map<String, Boolean> selectedItems = new HashMap<>(); // Use path as key for uniqueness
 
     public interface OnGallaryItemClickListener {
         void onFileClick(GallaryItem gallaryItem);
@@ -43,9 +45,13 @@ public class GallaryAdapter extends RecyclerView.Adapter<GallaryAdapter.GallaryV
         this.gallaryItemList = gallaryItemList;
         this.clickListener = clickListener;
         this.longClickListener = longClickListener;
-        this.selectionModeChangeListener = selectionModeChangeListener;
     }
 
+    public void setSelectionModeChangeListener(OnSelectionModeChangeListener listener) {
+        this.selectionModeChangeListener = listener;
+    }
+
+    @SuppressLint("NotifyDataSetChanged")
     public void setSelectionMode(boolean selectionMode) {
         this.isSelectionMode = selectionMode;
         if (!selectionMode) {
@@ -57,9 +63,9 @@ public class GallaryAdapter extends RecyclerView.Adapter<GallaryAdapter.GallaryV
 
     public void setItemSelected(GallaryItem item, boolean selected) {
         if (selected) {
-            selectedItems.put(item, true);
+            selectedItems.put(item.getPath(), true);
         } else {
-            selectedItems.remove(item);
+            selectedItems.remove(item.getPath());
         }
         int position = gallaryItemList.indexOf(item);
         if (position != -1) {
@@ -68,14 +74,17 @@ public class GallaryAdapter extends RecyclerView.Adapter<GallaryAdapter.GallaryV
         updateSelectionModeCallback();
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     public void selectAll() {
+        selectedItems.clear();
         for (GallaryItem item : gallaryItemList) {
-            selectedItems.put(item, true);
+            selectedItems.put(item.getPath(), true);
         }
         notifyDataSetChanged();
         updateSelectionModeCallback();
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     public void clearSelections() {
         selectedItems.clear();
         notifyDataSetChanged();
@@ -87,11 +96,27 @@ public class GallaryAdapter extends RecyclerView.Adapter<GallaryAdapter.GallaryV
     }
 
     public boolean isAllItemsSelected() {
-        return selectedItems.size() == gallaryItemList.size() && gallaryItemList.size() > 0;
+        return selectedItems.size() == gallaryItemList.size() && !gallaryItemList.isEmpty();
     }
 
     public boolean isInSelectionMode() {
         return isSelectionMode;
+    }
+
+    // NEW METHOD: Get list of selected items for sending
+    public List<GallaryItem> getSelectedItems() {
+        List<GallaryItem> selected = new ArrayList<>();
+        for (GallaryItem item : gallaryItemList) {
+            if (selectedItems.containsKey(item.getPath())) {
+                selected.add(item);
+            }
+        }
+        return selected;
+    }
+
+    // Check if an item is selected
+    private boolean isItemSelected(GallaryItem item) {
+        return selectedItems.containsKey(item.getPath());
     }
 
     private void updateSelectionModeCallback() {
@@ -120,12 +145,12 @@ public class GallaryAdapter extends RecyclerView.Adapter<GallaryAdapter.GallaryV
     }
 
     class GallaryViewHolder extends RecyclerView.ViewHolder {
-        private ImageView fileIcon;
-        private TextView fileName;
-        private TextView fileSize;
-        private TextView fileType;
-        private CheckBox selectionCheckBox;
-        private View itemContainer;
+        private final ImageView fileIcon;
+        private final TextView fileName;
+        private final TextView fileSize;
+        private final TextView fileType;
+        private final CheckBox selectionCheckBox;
+        private final View itemContainer;
 
         public GallaryViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -133,7 +158,7 @@ public class GallaryAdapter extends RecyclerView.Adapter<GallaryAdapter.GallaryV
             fileName = itemView.findViewById(R.id.fileName);
             fileSize = itemView.findViewById(R.id.fileSize);
             fileType = itemView.findViewById(R.id.fileType);
-            selectionCheckBox = itemView.findViewById(R.id.selectionCheckBox); // Back to CheckBox
+            selectionCheckBox = itemView.findViewById(R.id.selectionCheckBox);
             itemContainer = itemView.findViewById(R.id.itemContainer);
 
             // Set click listeners
@@ -143,7 +168,7 @@ public class GallaryAdapter extends RecyclerView.Adapter<GallaryAdapter.GallaryV
                     GallaryItem item = gallaryItemList.get(position);
                     if (isSelectionMode) {
                         // Toggle selection in selection mode
-                        boolean isSelected = selectedItems.containsKey(item);
+                        boolean isSelected = isItemSelected(item);
                         setItemSelected(item, !isSelected);
                     } else if (clickListener != null) {
                         // Normal click behavior
@@ -175,7 +200,7 @@ public class GallaryAdapter extends RecyclerView.Adapter<GallaryAdapter.GallaryV
                     int position = getAdapterPosition();
                     if (position != RecyclerView.NO_POSITION && isSelectionMode) {
                         GallaryItem item = gallaryItemList.get(position);
-                        boolean isSelected = selectedItems.containsKey(item);
+                        boolean isSelected = isItemSelected(item);
                         setItemSelected(item, !isSelected);
                     }
                 });
@@ -191,7 +216,7 @@ public class GallaryAdapter extends RecyclerView.Adapter<GallaryAdapter.GallaryV
             if (selectionCheckBox != null) {
                 if (isSelectionMode) {
                     selectionCheckBox.setVisibility(View.VISIBLE);
-                    boolean isSelected = selectedItems.containsKey(gallaryItem);
+                    boolean isSelected = isItemSelected(gallaryItem);
 
                     // Set checkbox state - this will show check/uncheck automatically
                     selectionCheckBox.setChecked(isSelected);
@@ -203,12 +228,20 @@ public class GallaryAdapter extends RecyclerView.Adapter<GallaryAdapter.GallaryV
                                 itemContainer.setBackgroundColor(
                                         itemView.getContext().getResources().getColor(android.R.color.holo_blue_light, null)
                                 );
+                            } else {
+                                itemContainer.setBackgroundColor(
+                                        itemView.getContext().getResources().getColor(android.R.color.holo_blue_light)
+                                );
                             }
                             itemContainer.setAlpha(0.7f);
                         } else {
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                                 itemContainer.setBackgroundColor(
                                         itemView.getContext().getResources().getColor(android.R.color.transparent, null)
+                                );
+                            } else {
+                                itemContainer.setBackgroundColor(
+                                        itemView.getContext().getResources().getColor(android.R.color.transparent)
                                 );
                             }
                             itemContainer.setAlpha(1.0f);
@@ -220,6 +253,10 @@ public class GallaryAdapter extends RecyclerView.Adapter<GallaryAdapter.GallaryV
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                             itemContainer.setBackgroundColor(
                                     itemView.getContext().getResources().getColor(android.R.color.transparent, null)
+                            );
+                        } else {
+                            itemContainer.setBackgroundColor(
+                                    itemView.getContext().getResources().getColor(android.R.color.transparent)
                             );
                         }
                         itemContainer.setAlpha(1.0f);
@@ -300,6 +337,7 @@ public class GallaryAdapter extends RecyclerView.Adapter<GallaryAdapter.GallaryV
             fileIcon.setImageResource(iconResource);
         }
 
+        @SuppressLint("DefaultLocale")
         private String formatFileSize(long size) {
             if (size < 1024) return size + " B";
             else if (size < 1024 * 1024) return String.format("%.1f KB", size / 1024.0);

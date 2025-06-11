@@ -6,14 +6,14 @@
     <item
         android:id="@+id/action_start_selection"
         android:title="Select"
-        android:icon="@android:drawable/checkbox_off_background"
+        android:icon="@drawable/uncheck"
         app:showAsAction="ifRoom" />
 
     <!-- Select All (visible during selection mode) -->
     <item
         android:id="@+id/action_select_all"
         android:title="Select All"
-        android:icon="@android:drawable/checkbox_on_background"
+        android:icon="@drawable/checkbox"
         app:showAsAction="ifRoom"
         android:visible="false" />
 
